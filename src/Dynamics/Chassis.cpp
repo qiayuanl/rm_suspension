@@ -24,7 +24,7 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
   Mat3<T> I3 = Mat3<T>::Identity();
   int bodyID = 6;
   //Adab Joint
-  Mat6<T> xtreeAbad = createSXform(I3, withLegSigns<T>(_abadLocation, 1));
+  Mat6<T> xtreeAbad = createSXform(I3, withLegSigns<T>(_abadLocation, 0));
   Mat6<T> xtreeAbadRotor =
       createSXform(I3, _abadRotorLocation);
 
@@ -45,6 +45,8 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
                 _hipRotorInertia.flipAlongAxis(CoordinateAxis::Y),
                 _hipGearRatio, bodyID - 1, JointType::Revolute,
                 CoordinateAxis::Y, xtreeHip, xtreeHipRotor);
+  model.addGroundContactPoint(bodyID, Vec3<T>(0, 0, -_hipLinkLength));
+
   Vec3<T> g(0, 0, -9.81);
   model.setGravity(g);
 
