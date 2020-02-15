@@ -4,13 +4,6 @@
 
 #include "Simulation.h"
 
-int main() {
-  Simulation simulation(ChassisType::STANDARD);
-  simulation.runForTime(3);
-
-  return true;
-}
-
 /*!
  * Initialize the simulator here.  It is _not_ okay to block here waiting for
  * the robot to connect. Use firstRun() instead!
@@ -19,7 +12,7 @@ Simulation::Simulation(ChassisType type)
     : tau_(2) {
   // init parameters
   printf("[Simulation] Load parameters...\n");
-
+  //simParams_.getParam(&nh_);
   // init quadruped info
   printf("[Simulation] Build chassis...\n");
   type_ = type;
@@ -32,7 +25,7 @@ Simulation::Simulation(ChassisType type)
 
   model_ = chassis_.buildModel();
   simulator_ =
-      new DynamicsSimulator<double>(model_, simParams_.use_spring_damper);
+      new DynamicsSimulator<double>(model_, simParams_.use_spring_damper_);
 
   DVec<double> zero2(2);
   for (u32 i = 0; i < 1; i++) {
@@ -129,12 +122,14 @@ void Simulation::addCollisionMesh(double mu, double resti, double grid_size,
 }
 
 /*!
- * Runs the simulator for time the _running variable is set
- * to false. Updates graphics at 60 fps.
+ * Runs the simulator for time xxx
+ *
+ * Updates graphics at 60 fps.
  * @param
  */
 void Simulation::runForTime(double time) {
-  while (currentSimTime_ < time) {
+  while (currentSimTime_ < time && ros::ok()) {
     step(simParams_.dynamics_dt_, simParams_.control_dt_);
+    printf("%f,%f\n", currentSimTime_, getRobotState().bodyPosition.z());
   }
 }

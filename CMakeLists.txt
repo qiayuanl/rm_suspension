@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
 )
+
 # Source/Include files
 include_directories(
     ${catkin_INCLUDE_DIRS}
@@ -22,8 +23,8 @@ include_directories(
 
 file(GLOB_RECURSE sources "src/*.cpp")
 
-add_executable(simulation "src/Simulation.cpp" ${sources})
+add_executable(sim "main.cpp" ${sources})
 
-target_link_libraries(simulation
+target_link_libraries(sim
     ${catkin_LIBRARIES}
     )

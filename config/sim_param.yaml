@@ -1,0 +1,13 @@
+dynamics_dt: 0.001
+control_dt: 0.001
+floor_kp: 5000
+floor_kd: 500000
+home_kp_lin: 2500
+home_kd_lin: 300
+home_kp_ang: 250
+home_kd_ang: 60
+use_spring_damper: false
+go_home: false
+#floating point value in table should define with decimal point
+home_pos: [0.,0.,.5]
+home_rpy: [0.,0.,0.]

@@ -11,7 +11,6 @@
 #include "config.h"
 /*!
  * Top-level control of a simulation.
- * A simulation includes 1 robot and 1 controller
  * It does not include the graphics window
  */
 
@@ -42,7 +41,6 @@ class Simulation {
                         bool transparent = true);
 
   void runForTime(double time);
-
   void resetSimTime() {
     currentSimTime_ = 0.;
     timeOfNextLControl_ = 0.;
@@ -55,6 +53,8 @@ class Simulation {
   const FBModelState<double> &getRobotState() { return simulator_->getState(); }
 
  private:
+  ros::NodeHandle nh_;
+  //ros::Publisher vis_pub_;
 
   Chassis<double> chassis_;
   FBModelState<double> jointState_;

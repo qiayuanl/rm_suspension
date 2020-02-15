@@ -1,0 +1,4 @@
+<launch>
+    <rosparam command="load" file="$(find rm_suspension)/config/sim_param.yaml"/>
+    <node pkg="rm_suspension" type="simulation" name="simulation" output="screen"/>
+</launch>
