@@ -20,32 +20,77 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
   model.addBase(_bodyInertia);
   // add contact for the cheetah's body
   model.addGroundContactBoxPoints(5, bodyDims);
+  const int baseID = 5;
+  int bodyID = baseID;
+  T sideSign = -1;
 
   Mat3<T> I3 = Mat3<T>::Identity();
-  int bodyID = 6;
-  //Adab Joint
-  Mat6<T> xtreeAbad = createSXform(I3, withLegSigns<T>(_abadLocation, 0));
-  Mat6<T> xtreeAbadRotor =
-      createSXform(I3, _abadRotorLocation);
 
-  model.addBody(_abadInertia.flipAlongAxis(CoordinateAxis::Y),
-                _abadRotorInertia.flipAlongAxis(CoordinateAxis::Y),
-                _abadGearRatio, 5, JointType::Revolute,
-                CoordinateAxis::X, xtreeAbad, xtreeAbadRotor);
+  // loop over 4 legs
+  for (int legID = 0; legID < 4; legID++) {
+    // Ab/Ad joint
+    //  int addBody(const SpatialInertia<T>& inertia, const SpatialInertia<T>&
+    //  rotorInertia, T gearRatio,
+    //              int parent, JointType jointType, CoordinateAxis jointAxis,
+    //              const Mat6<T>& Xtree, const Mat6<T>& Xrot);
+    bodyID++;
+    Mat6<T> xtreeAbad = createSXform(I3, withLegSigns<T>(_abadLocation, legID));
+    Mat6<T> xtreeAbadRotor =
+        createSXform(I3, withLegSigns<T>(_abadRotorLocation, legID));
 
-  // Hip Joint
-  bodyID++;
-  Mat6<T> xtreeHip =
-      createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)),
-                   _hipLocation);
-  Mat6<T> xtreeHipRotor =
-      createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)),
-                   _hipRotorLocation);
-  model.addBody(_hipInertia.flipAlongAxis(CoordinateAxis::Y),
-                _hipRotorInertia.flipAlongAxis(CoordinateAxis::Y),
-                _hipGearRatio, bodyID - 1, JointType::Revolute,
-                CoordinateAxis::Y, xtreeHip, xtreeHipRotor);
-  model.addGroundContactPoint(bodyID, Vec3<T>(0, 0, -_hipLinkLength));
+    if (sideSign < 0) {
+      model.addBody(_abadInertia.flipAlongAxis(CoordinateAxis::Y),
+                    _abadRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+                    _abadGearRatio, baseID, JointType::Revolute,
+                    CoordinateAxis::X, xtreeAbad, xtreeAbadRotor);
+    } else {
+      model.addBody(_abadInertia, _abadRotorInertia, _abadGearRatio, baseID,
+                    JointType::Revolute, CoordinateAxis::X, xtreeAbad,
+                    xtreeAbadRotor);
+    }
+
+    // Hip Joint
+    bodyID++;
+    Mat6<T> xtreeHip =
+        createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)),
+                     withLegSigns<T>(_hipLocation, legID));
+    Mat6<T> xtreeHipRotor =
+        createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)),
+                     withLegSigns<T>(_hipRotorLocation, legID));
+    if (sideSign < 0) {
+      model.addBody(_hipInertia.flipAlongAxis(CoordinateAxis::Y),
+                    _hipRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+                    _hipGearRatio, bodyID - 1, JointType::Revolute,
+                    CoordinateAxis::Y, xtreeHip, xtreeHipRotor);
+    } else {
+      model.addBody(_hipInertia, _hipRotorInertia, _hipGearRatio, bodyID - 1,
+                    JointType::Revolute, CoordinateAxis::Y, xtreeHip,
+                    xtreeHipRotor);
+    }
+
+    // add knee ground contact point
+    model.addGroundContactPoint(bodyID, Vec3<T>(0, 0, -_hipLinkLength));
+
+    // Knee Joint
+    bodyID++;
+    Mat6<T> xtreeKnee = createSXform(I3, _kneeLocation);
+    Mat6<T> xtreeKneeRotor = createSXform(I3, _kneeRotorLocation);
+    if (sideSign < 0) {
+      model.addBody(_kneeInertia.flipAlongAxis(CoordinateAxis::Y),
+                    _kneeRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+                    _kneeGearRatio, bodyID - 1, JointType::Revolute,
+                    CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
+    } else {
+      model.addBody(_kneeInertia, _kneeRotorInertia, _kneeGearRatio, bodyID - 1,
+                    JointType::Revolute, CoordinateAxis::Y, xtreeKnee,
+                    xtreeKneeRotor);
+    }
+
+    // add foot
+    model.addGroundContactPoint(bodyID, Vec3<T>(0, 0, -_kneeLinkLength), true);
+
+    sideSign *= -1;
+  }
 
   Vec3<T> g(0, 0, -9.81);
   model.setGravity(g);
