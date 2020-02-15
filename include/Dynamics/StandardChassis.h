@@ -14,7 +14,7 @@ Chassis<T> buildStandardChassis() {
 
   chassis._bodyMass = 3.3;
   chassis._bodyLength = 0.19 * 2;
-  chassis._bodyWidth = 0.049 * 2;
+  chassis._bodyWidth = 0.19 * 2;
   chassis._bodyHeight = 0.05 * 2;
   chassis._abadGearRatio = 6;
   chassis._hipGearRatio = 6;

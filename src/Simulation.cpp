@@ -48,16 +48,16 @@ Simulation::Simulation(ChassisType type)
   jointState_.qd = zero2;
   FBModelState<double> x0;
   x0.bodyOrientation = rotationMatrixToQuaternion(
-      ori::coordinateRotation(CoordinateAxis::Z, 0.));
+      ori::coordinateRotation(CoordinateAxis::Z, 0.0));
 
   x0.bodyPosition.setZero();
   x0.bodyVelocity.setZero();
   x0.q = zero2;
   x0.qd = zero2;
 
-  x0.bodyPosition[2] = 1.2;
+  x0.bodyPosition[2] = 0.15;
   setRobotState(x0);
-  addCollisionPlane(0.7, 0, 0);
+  addCollisionPlane(1, 0, 0);
   printf("[Simulation] Ready!\n");
 }
 
@@ -72,7 +72,7 @@ void Simulation::step(double dt, double dtControl) {
   } else {
     assert(false);
   }
-
+  tau_[1] = 0;
   // dynamics
   currentSimTime_ += dt;
 
@@ -86,7 +86,6 @@ void Simulation::step(double dt, double dtControl) {
   homing.kp_ang = simParams_.home_kp_ang_;
   homing.kd_ang = simParams_.home_kd_ang_;
   simulator_->setHoming(homing);
-
   simulator_->step(dt, tau_, simParams_.floor_kp_, simParams_.floor_kd_);
 }
 
@@ -99,10 +98,9 @@ void Simulation::step(double dt, double dtControl) {
  */
 void Simulation::addCollisionPlane(double mu, double resti, double height,
                                    double sizeX, double sizeY) {
-  simulator_->addCollisionPlane(mu, resti, height);
-  uint32_t shape = visualization_msgs::Marker::CUBE;
+  simulator_->addCollisionPlane(mu, resti, height);;
   marker_.id = 0;
-  marker_.type = shape;
+  marker_.type = visualization_msgs::Marker::CUBE;
   marker_.action = visualization_msgs::Marker::ADD;
 
   marker_.pose.position.z = -0.001;
@@ -158,5 +156,89 @@ void Simulation::addCollisionMesh(double mu, double resti, double grid_size,
 void Simulation::runForTime(double time) {
   while (currentSimTime_ < time && ros::ok()) {
     step(simParams_.dynamics_dt_, simParams_.control_dt_);
+    updateVis();
   }
+}
+void Simulation::updateVis() {
+
+  Quat<double> quat;
+  tf::Transform tf;
+  ros::Time now = ros::Time::now();
+
+  marker_.id = 1;
+  marker_.type = visualization_msgs::Marker::CUBE;
+  marker_.action = visualization_msgs::Marker::ADD;
+
+  marker_.pose.position.x = model_.getPosition(5).x();
+  marker_.pose.position.y = model_.getPosition(5).y();
+  marker_.pose.position.z = model_.getPosition(5).z();
+  quat = rotationMatrixToQuaternion(model_.getOrientation(5));
+  marker_.pose.orientation.x = quat.x();
+  marker_.pose.orientation.y = quat.y();
+  marker_.pose.orientation.z = quat.z();
+  marker_.pose.orientation.w = quat.w();
+
+  marker_.scale.x = chassis_._bodyLength;
+  marker_.scale.y = chassis_._bodyWidth;
+  marker_.scale.z = chassis_._bodyHeight;
+
+  marker_.color.r = .0f;
+  marker_.color.g = .0f;
+  marker_.color.b = 1.0f;
+  marker_.color.a = 0.5f;
+  marker_.lifetime = ros::Duration(0);
+  marker_pub_.publish(marker_);
+  tf.setRotation(tf::Quaternion(quat.x(), quat.y(), quat.z(), quat.w()));
+  tf.setOrigin(tf::Vector3(marker_.pose.position.x, marker_.pose.position.y, marker_.pose.position.z));
+  br_.sendTransform(tf::StampedTransform(tf, now, "map", "base_link"));
+
+  marker_.id = 2;
+  marker_.type = visualization_msgs::Marker::CUBE;
+  marker_.action = visualization_msgs::Marker::ADD;
+
+  marker_.pose.position.x = model_.getPosition(6).x();
+  marker_.pose.position.y = model_.getPosition(6).y();
+  marker_.pose.position.z = model_.getPosition(6).z();
+  quat = rotationMatrixToQuaternion(model_.getOrientation(6));
+  marker_.pose.orientation.x = quat.x();
+  marker_.pose.orientation.y = quat.y();
+  marker_.pose.orientation.z = quat.z();
+  marker_.pose.orientation.w = quat.w();
+
+  marker_.scale.x = chassis_._abadLinkLength;
+  marker_.scale.y = chassis_._abadLinkLength / 2;
+  marker_.scale.z = chassis_._abadLinkLength / 2;
+
+  // Set the color -- be sure to set alpha to something non-zero!
+  marker_.color.r = .0f;
+  marker_.color.g = .0f;
+  marker_.color.b = 1.0f;
+  marker_.color.a = 0.5f;
+  marker_.lifetime = ros::Duration(0);
+  marker_pub_.publish(marker_);
+
+  marker_.id = 3;
+  marker_.type = visualization_msgs::Marker::CUBE;
+  marker_.action = visualization_msgs::Marker::ADD;
+
+  marker_.pose.position.x = model_.getPosition(7).x();
+  marker_.pose.position.y = model_.getPosition(7).y();
+  marker_.pose.position.z = model_.getPosition(7).z();
+  quat = rotationMatrixToQuaternion(model_.getOrientation(7));
+  marker_.pose.orientation.x = quat.x();
+  marker_.pose.orientation.y = quat.y();
+  marker_.pose.orientation.z = quat.z();
+  marker_.pose.orientation.w = quat.w();
+
+  marker_.scale.x = chassis_._hipLinkLength;
+  marker_.scale.y = chassis_._hipLinkLength / 2;
+  marker_.scale.z = chassis_._hipLinkLength / 2;
+
+  // Set the color -- be sure to set alpha to something non-zero!
+  marker_.color.r = .0f;
+  marker_.color.g = .0f;
+  marker_.color.b = 1.0f;
+  marker_.color.a = 0.5f;
+  marker_.lifetime = ros::Duration(0);
+  marker_pub_.publish(marker_);
 }

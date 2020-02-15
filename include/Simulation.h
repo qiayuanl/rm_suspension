@@ -10,6 +10,7 @@
 #include "Dynamics/StandardChassis.h"
 #include "config.h"
 #include <visualization_msgs/Marker.h>
+#include <tf/transform_broadcaster.h>
 
 /*!
  * Top-level control of a simulation.
@@ -40,6 +41,7 @@ class Simulation {
                         bool transparent = true);
 
   void runForTime(double time);
+  void updateVis();
   void resetSimTime() {
     currentSimTime_ = 0.;
     timeOfNextLControl_ = 0.;
@@ -56,6 +58,7 @@ class Simulation {
   ros::Publisher marker_pub_;
   visualization_msgs::Marker marker_;
   ros::Time timeOfVis{};
+  tf::TransformBroadcaster br_;
 
   Chassis<double> chassis_;
   FBModelState<double> jointState_;
