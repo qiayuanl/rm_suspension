@@ -9,6 +9,8 @@
 #include "Dynamics/DynamicsSimulator.h"
 #include "Dynamics/StandardChassis.h"
 #include "config.h"
+#include <visualization_msgs/Marker.h>
+
 /*!
  * Top-level control of a simulation.
  * It does not include the graphics window
@@ -28,13 +30,10 @@ class Simulation {
 
   void step(double dt, double dtControl);
   void addCollisionPlane(double mu, double resti, double height,
-                         double sizeX = 20, double sizeY = 20,
-                         double checkerX = 40, double checkerY = 40,
-                         bool addToWindow = true);
+                         double sizeX = 10, double sizeY = 10);
   void addCollisionBox(double mu, double resti, double depth, double width,
                        double height, const Vec3<double> &pos,
-                       const Mat3<double> &ori, bool addToWindow = true,
-                       bool transparent = true);
+                       const Mat3<double> &ori);
   void addCollisionMesh(double mu, double resti, double grid_size,
                         const Vec3<double> &left_corner_loc,
                         const DMat<double> &height_map, bool addToWindow = true,
@@ -54,7 +53,9 @@ class Simulation {
 
  private:
   ros::NodeHandle nh_;
-  //ros::Publisher vis_pub_;
+  ros::Publisher marker_pub_;
+  visualization_msgs::Marker marker_;
+  ros::Time timeOfVis{};
 
   Chassis<double> chassis_;
   FBModelState<double> jointState_;

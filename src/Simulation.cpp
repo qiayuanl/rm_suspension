@@ -10,11 +10,21 @@
  */
 Simulation::Simulation(ChassisType type)
     : tau_(2) {
+  // init ROS
+  ROS_INFO("[Simulation] Init ROS...\n");
+  marker_pub_ = nh_.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+  marker_.header.frame_id = "/map";
+  marker_.header.stamp = ros::Time::now();
+  marker_.ns = "basic_shapes";
+  while (marker_pub_.getNumSubscribers() < 1 && ros::ok()) {
+    ROS_INFO_ONCE("[Simulation]Wait for subscriber to the marker");
+    sleep(1);
+  }
   // init parameters
-  printf("[Simulation] Load parameters...\n");
-  //simParams_.getParam(&nh_);
-  // init quadruped info
-  printf("[Simulation] Build chassis...\n");
+  ROS_INFO("[Simulation] Load parameters...\n");
+  simParams_.getParam(&nh_);
+  // init chassis info
+  ROS_INFO("[Simulation] Build chassis...\n");
   type_ = type;
   chassis_ = buildStandardChassis<double>();
   printf("[Simulation] Build actuator model...\n");
@@ -47,8 +57,7 @@ Simulation::Simulation(ChassisType type)
 
   x0.bodyPosition[2] = 1.2;
   setRobotState(x0);
-
-  simulator_->addCollisionPlane(0.7, 0, 0);
+  addCollisionPlane(0.7, 0, 0);
   printf("[Simulation] Ready!\n");
 }
 
@@ -58,7 +67,7 @@ void Simulation::step(double dt, double dtControl) {
     timeOfNextLControl_ = timeOfNextLControl_ + dtControl;
   }
 
-  // actuator model:
+  //TODO actuator model:
   if (chassis_._chassisType == ChassisType::STANDARD) {
   } else {
     assert(false);
@@ -89,9 +98,29 @@ void Simulation::step(double dt, double dtControl) {
  * @param addToWindow : if true, also adds graphics for the plane
  */
 void Simulation::addCollisionPlane(double mu, double resti, double height,
-                                   double sizeX, double sizeY, double checkerX,
-                                   double checkerY, bool addToWindow) {
+                                   double sizeX, double sizeY) {
   simulator_->addCollisionPlane(mu, resti, height);
+  uint32_t shape = visualization_msgs::Marker::CUBE;
+  marker_.id = 0;
+  marker_.type = shape;
+  marker_.action = visualization_msgs::Marker::ADD;
+
+  marker_.pose.position.z = -0.001;
+  marker_.pose.orientation.x = 0.0;
+  marker_.pose.orientation.y = 0.0;
+  marker_.pose.orientation.z = 0.0;
+  marker_.pose.orientation.w = 1.0;
+  // Set the scale of the marker -- 1x1x1 here means 1m on a side
+  marker_.scale.x = sizeX;
+  marker_.scale.y = sizeY;
+  marker_.scale.z = 0.001;
+  // Set the color -- be sure to set alpha to something non-zero!
+  marker_.color.r = 1.0f;
+  marker_.color.g = 1.0f;
+  marker_.color.b = 1.0f;
+  marker_.color.a = 0.5;
+  marker_.lifetime = ros::Duration(0);
+  marker_pub_.publish(marker_);
 }
 
 /*!
@@ -108,8 +137,7 @@ void Simulation::addCollisionPlane(double mu, double resti, double height,
 void Simulation::addCollisionBox(double mu, double resti, double depth,
                                  double width, double height,
                                  const Vec3<double> &pos,
-                                 const Mat3<double> &ori, bool addToWindow,
-                                 bool transparent) {
+                                 const Mat3<double> &ori) {
   simulator_->addCollisionBox(mu, resti, depth, width, height, pos, ori);
 }
 
@@ -130,6 +158,5 @@ void Simulation::addCollisionMesh(double mu, double resti, double grid_size,
 void Simulation::runForTime(double time) {
   while (currentSimTime_ < time && ros::ok()) {
     step(simParams_.dynamics_dt_, simParams_.control_dt_);
-    printf("%f,%f\n", currentSimTime_, getRobotState().bodyPosition.z());
   }
 }

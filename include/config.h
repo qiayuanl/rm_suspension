@@ -10,7 +10,7 @@
 
 class SimParameters {
  public:
-  double dynamics_dt_ = 0.001;
+  double dynamics_dt_;
   double control_dt_;
   double floor_kp_;
   double floor_kd_;
