@@ -13,6 +13,10 @@
 #include <tf/transform_broadcaster.h>
 #include <rosbag/bag.h>
 #include <Utilities/FakeSuspe.h>
+struct VisData {
+  Quat<double> quat[9];
+  Vec3<double> pos[9];
+};
 
 /*!
  * Top-level control of a simulation.
@@ -43,10 +47,11 @@ class Simulation {
                         bool transparent = true);
 
   void runForTime(double time);
-  void updateVis();
+  void play();
   void resetSimTime() {
     currentSimTime_ = 0.;
     timeOfNextLControl_ = 0.;
+    timeOfPrint_ = 0;
   }
 
   ~Simulation() {
@@ -60,7 +65,6 @@ class Simulation {
   ros::Publisher marker_pub_;
   visualization_msgs::Marker marker_;
   tf::TransformBroadcaster br_;
-  ros::Time visTime_{};
 
   Chassis<double> chassis_;
   FBModelState<double> jointState_;
@@ -73,10 +77,13 @@ class Simulation {
 
   FakeSuspe fake_suspe_;
   SuspeData suspe_data_;
-
+  vector<VisData> visData_;
   double timeOfNextLControl_{};
-  double timeOfVis_{};
+  double timeOfRecord_{};
+  double timeOfPrint_{};
   double currentSimTime_{};
+
+  void record();
 };
 
 #endif //SUSPENSION_SIM_INCLUDE_SIMULATION_H_

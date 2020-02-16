@@ -11,20 +11,20 @@
 Simulation::Simulation(ChassisType type)
     : tau_(8) {
   // init ROS
-  ROS_INFO("[Simulation] Init ROS...\n");
+  printf("[Simulation] Init ROS...\n");
   marker_pub_ = nh_.advertise<visualization_msgs::Marker>("visualization_marker", 10);
   marker_.header.frame_id = "/map";
   marker_.header.stamp = ros::Time::now();
   marker_.ns = "basic_shapes";
-//  while (marker_pub_.getNumSubscribers() < 1 && ros::ok()) {
-//    ROS_INFO_ONCE("[Simulation]Wait for subscriber to the marker");
-//    sleep(1);
-//  }
+  while (marker_pub_.getNumSubscribers() < 1 && ros::ok()) {
+    ROS_INFO_ONCE("[Simulation] Wait for subscriber to the marker\n");
+    sleep(1);
+  }
   // init parameters
-  ROS_INFO("[Simulation] Load parameters...\n");
+  printf("[Simulation] Load parameters...\n");
   simParams_.getParam(&nh_);
   // init chassis info
-  ROS_INFO("[Simulation] Build chassis...\n");
+  printf("[Simulation] Build chassis...\n");
   type_ = type;
   chassis_ = buildStandardChassis<double>();
   printf("[Simulation] Build actuator model...\n");
@@ -54,9 +54,9 @@ Simulation::Simulation(ChassisType type)
   x0.q = zero8;
   x0.qd = zero8;
 
-  x0.bodyPosition[2] = 0.2;
+  x0.bodyPosition[2] = 0.5;
   setRobotState(x0);
-  addCollisionPlane(0.5, 0., 0.);
+  addCollisionPlane(0.7, 0.2, 0.);
   printf("[Simulation] Ready!\n");
 
 }
@@ -69,15 +69,10 @@ void Simulation::step(double dt, double dtControl) {
   }
   fake_suspe_.update(suspe_data_);
   for (int wheel = 0; wheel < 4; ++wheel) {
-    tau_[wheel * 2] = fake_suspe_.torque_out[wheel];
+    tau_[wheel * 2] = fake_suspe_.torque_out_[wheel];
   }
-//  tau_[1] = 0.3;
-//  tau_[3] = 0.3;
-//  tau_[5] = 0.3;
-//  tau_[7] = 0.3;
-//
 
-  // Low level control (if needed)
+  // Low level control
   if (currentSimTime_ >= timeOfNextLControl_) {
     timeOfNextLControl_ = timeOfNextLControl_ + dtControl;
   }
@@ -90,6 +85,11 @@ void Simulation::step(double dt, double dtControl) {
 //  } else {
 //    assert(false);
 //  }
+  tau_[1] = 0.3;
+  tau_[3] = 0.3;
+  tau_[5] = 0.3;
+  tau_[7] = 0.3;
+
   // dynamics
   currentSimTime_ += dt;
 
@@ -171,49 +171,79 @@ void Simulation::addCollisionMesh(double mu, double resti, double grid_size,
  * @param
  */
 void Simulation::runForTime(double time) {
+  printf("[Simulation] Computing...\n");
+  visData_.clear();
   while (currentSimTime_ < time && ros::ok()) {
     step(simParams_.dynamics_dt_, simParams_.control_dt_);
-    if (currentSimTime_ >= timeOfVis_) {
-      updateVis();
-      timeOfVis_ = currentSimTime_ + 1 / simParams_.vis_fps_;
+    if (currentSimTime_ >= timeOfRecord_) {
+      record();
+      timeOfRecord_ = currentSimTime_ + 1. / simParams_.vis_fps_;
+    }
+    if (ros::Time::now().toSec() >= timeOfPrint_) {
+      printf("\r[Simulation] %.5lf%%", currentSimTime_ / time);
+      fflush(stdout);
+      timeOfPrint_ = ros::Time::now().toSec() + 1.;
     }
   }
 }
 
-void Simulation::updateVis() {
+void Simulation::record() {
+  VisData vis_data;
+  vis_data.quat[0] = rotationMatrixToQuaternion(model_.getOrientation(5));
+  vis_data.pos[0] = model_.getPosition(5);
 
-  Quat<double> quat;
-  Vec3<double> pos;
-  size_t s = sizeof(pos);
+  for (int wheelID = 0; wheelID < 4; ++wheelID) {
+    vis_data.quat[wheelID * 2 + 1] = rotationMatrixToQuaternion(model_.getOrientation(wheelID * 2 + 6));
+    vis_data.pos[wheelID * 2 + 1] = model_.getPosition(wheelID * 2 + 6);
+    vis_data.quat[wheelID * 2 + 2] = rotationMatrixToQuaternion(model_.getOrientation(wheelID * 2 + 7));
+    vis_data.pos[wheelID * 2 + 2] = model_.getPosition(wheelID * 2 + 7);
+  }
+  visData_.push_back(vis_data);
+}
+
+void Simulation::play() {
+  printf("[Simulation] Start play!\n");
   tf::Quaternion quat_tf;
   tf::Transform tf;
-  visTime_ = visTime_ + ros::Duration(1 / simParams_.vis_fps_);
   std::string frame;
 
-  quat = rotationMatrixToQuaternion(model_.getOrientation(5));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  pos = model_.getPosition(5);
-  tf.setOrigin(tf::Vector3(pos.x(), pos.y(), pos.z()));
-  br_.sendTransform(tf::StampedTransform(tf, visTime_, "map", "base_link"));
+  auto iter = visData_.begin();
 
-  for (int i = 0; i < 4; ++i) {
-    quat = rotationMatrixToQuaternion(model_.getOrientation(i * 2 + 6));
-    quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-    tf.setRotation(quat_tf);
-    pos = model_.getPosition(i * 2 + 6);
-    tf.setOrigin(tf::Vector3(pos.x(), pos.y(), pos.z()));
-    frame = "suspension_";
-    frame += std::to_string(i);
-    br_.sendTransform(tf::StampedTransform(tf, visTime_, "map", frame));
+  ros::Rate loop_rate(simParams_.vis_fps_);
+  while (ros::ok() && iter != visData_.end()) {
+    ros::Time now = ros::Time::now();
 
-    quat = rotationMatrixToQuaternion(model_.getOrientation(i * 2 + 7));
-    quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
+    quat_tf.setValue(iter->quat[0][1], iter->quat[0][2], iter->quat[0][3], iter->quat[0][0]);
     tf.setRotation(quat_tf);
-    pos = model_.getPosition(i * 2 + 7);
-    tf.setOrigin(tf::Vector3(pos.x(), pos.y(), pos.z()));
-    frame = "wheel_";
-    frame += std::to_string(i);
-    br_.sendTransform(tf::StampedTransform(tf, visTime_, "map", frame));
+    tf.setOrigin(tf::Vector3(iter->pos[0].x(), iter->pos[0].y(), iter->pos[0].z()));
+    br_.sendTransform(tf::StampedTransform(tf, now, "map", "base_link"));
+
+    for (int wheelID = 0; wheelID < 4; ++wheelID) {
+      quat_tf.setValue(iter->quat[wheelID * 2 + 1][1],
+                       iter->quat[wheelID * 2 + 1][2],
+                       iter->quat[wheelID * 2 + 1][3],
+                       iter->quat[wheelID * 2 + 1][0]);
+      tf.setRotation(quat_tf);
+      tf.setOrigin(tf::Vector3(iter->pos[wheelID * 2 + 1].x(),
+                               iter->pos[wheelID * 2 + 1].y(),
+                               iter->pos[wheelID * 2 + 1].z()));
+      frame = "suspension_";
+      frame += std::to_string(wheelID);
+      br_.sendTransform(tf::StampedTransform(tf, now, "map", frame));
+
+      quat_tf.setValue(iter->quat[wheelID * 2 + 2][1],
+                       iter->quat[wheelID * 2 + 2][2],
+                       iter->quat[wheelID * 2 + 2][3],
+                       iter->quat[wheelID * 2 + 2][0]);
+      tf.setRotation(quat_tf);
+      tf.setOrigin(tf::Vector3(iter->pos[wheelID * 2 + 2].x(),
+                               iter->pos[wheelID * 2 + 2].y(),
+                               iter->pos[wheelID * 2 + 2].z()));
+      frame = "wheel_";
+      frame += std::to_string(wheelID);
+      br_.sendTransform(tf::StampedTransform(tf, now, "map", frame));
+    }
+    ++iter;
+    loop_rate.sleep();
   }
 }

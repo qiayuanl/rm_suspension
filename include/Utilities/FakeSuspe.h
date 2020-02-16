@@ -14,7 +14,7 @@ class FakeSuspe {
   FakeSuspe() = default;
   ~FakeSuspe() = default;
   void update(SuspeData &data);
-  float torque_out[4]{};
+  float torque_out_[4]{};
 };
 
 #endif //SRC_RM_SUSPENSION_INCLUDE_UTILITIES_FAKESUSPE_H_

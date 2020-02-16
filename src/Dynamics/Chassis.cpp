@@ -19,7 +19,7 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
   Vec3<T> bodyDims(_bodyLength, _bodyWidth, _bodyHeight);
   model.addBase(_bodyInertia);
   // add contact for the chassis's body
-  model.addGroundContactBoxPoints(5, bodyDims);
+  //model.addGroundContactBoxPoints(5, bodyDims);
   const int baseID = 5;
   int bodyID = baseID;
 
@@ -68,10 +68,10 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
     }
 
     //add "foot" of wheel
-    for (double i = 0; i < 100.0; ++i) {
+    for (double i = 0; i < 20.0; ++i) {
       model.addGroundContactPoint
           (bodyID,
-           Vec3<T>(_wheelRadius * sin(2. * M_PI / 100. * i), 0, _wheelRadius * cos(2. * M_2_PI / 100. * i)),
+           Vec3<T>(_wheelRadius * sin(2. * M_PI / 20. * i), 0, _wheelRadius * cos(2. * M_PI / 20. * i)),
            false);
     }
   }

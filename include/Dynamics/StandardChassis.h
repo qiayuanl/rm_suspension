@@ -12,12 +12,12 @@ Chassis<T> buildStandardChassis() {
   Chassis<T> chassis;
   chassis._chassisType = ChassisType::STANDARD;
 
-  chassis._bodyMass = 3.3;
+  chassis._bodyMass = 10.;
   chassis._bodyLength = 0.04 * 2;
   chassis._bodyWidth = 0.09 * 2;
   chassis._bodyHeight = 0.05 * 2;
   chassis._suspeLinkLength = 0.2;
-  chassis._wheelRadius = 0.06;
+  chassis._wheelRadius = 0.075;
   chassis._wheelGearRatio = 1;
 
   chassis._motorTauMax = 3.f;
