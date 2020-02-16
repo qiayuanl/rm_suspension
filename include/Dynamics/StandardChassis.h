@@ -13,8 +13,8 @@ Chassis<T> buildStandardChassis() {
   chassis._chassisType = ChassisType::STANDARD;
 
   chassis._bodyMass = 3.3;
-  chassis._bodyLength = 0.2 * 2;
-  chassis._bodyWidth = 0.2 * 2;
+  chassis._bodyLength = 0.04 * 2;
+  chassis._bodyWidth = 0.09 * 2;
   chassis._bodyHeight = 0.05 * 2;
   chassis._suspeLinkLength = 0.2;
   chassis._wheelRadius = 0.06;
@@ -50,7 +50,7 @@ Chassis<T> buildStandardChassis() {
   Mat3<T> wheelRotationalInertia, wheelRotationalInertiaRotated;
   wheelRotationalInertiaRotated << 6, 0, 0, 0, 248, 0, 0, 0, 245;
   wheelRotationalInertiaRotated = wheelRotationalInertiaRotated * 1e-6;
-  wheelRotationalInertia = RY * wheelRotationalInertia * RY.transpose();
+  wheelRotationalInertia = RY * wheelRotationalInertiaRotated * RY.transpose();
   Vec3<T> wheelCOM(0, 0, 0);
   SpatialInertia<T> wheelInertia(0.064, wheelCOM, wheelRotationalInertia);
 
@@ -72,9 +72,9 @@ Chassis<T> buildStandardChassis() {
   chassis._bodyInertia = bodyInertia;
 
   // locations
-  chassis._suspeLocation = Vec3<T>(chassis._bodyLength, chassis._bodyWidth, 0);
+  chassis._suspeLocation = Vec3<T>(0.083, 0.172, -0.025);
   chassis._suspeRotorLocation = chassis._suspeLocation;
-  chassis._wheelLocation = Vec3<T>(-chassis._suspeLinkLength, 0, 0);
+  chassis._wheelLocation = Vec3<T>(-0.11135, -0.0324, 0);
   chassis._wheelRotorLocation = chassis._wheelLocation;
 
   return chassis;

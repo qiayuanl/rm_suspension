@@ -11,6 +11,8 @@
 #include "config.h"
 #include <visualization_msgs/Marker.h>
 #include <tf/transform_broadcaster.h>
+#include <rosbag/bag.h>
+#include <Utilities/FakeSuspe.h>
 
 /*!
  * Top-level control of a simulation.
@@ -68,6 +70,9 @@ class Simulation {
   std::vector<ActuatorModel<double>> actuatorModels_;
   SimParameters simParams_;
   ChassisType type_;
+
+  FakeSuspe fake_suspe_;
+  SuspeData suspe_data_;
 
   double timeOfNextLControl_{};
   double timeOfVis_{};

@@ -18,7 +18,7 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
   // we assume the Chassis's body can be modeled as a uniformly distributed box.
   Vec3<T> bodyDims(_bodyLength, _bodyWidth, _bodyHeight);
   model.addBase(_bodyInertia);
-  // add contact for the cheetah's body
+  // add contact for the chassis's body
   model.addGroundContactBoxPoints(5, bodyDims);
   const int baseID = 5;
   int bodyID = baseID;
@@ -50,9 +50,9 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
     }
 
     //TODO add ground contact point to suspension
-    //model.addGroundContactPoint(bodyID, Vec3<T>(-_suspeLinkLength, 0, 0));
+    // model.addGroundContactPoint(bodyID, Vec3<T>(-_suspeLinkLength, 0, 0));
 
-    // Knee Joint
+    // Wheel Joint
     bodyID++;
     Mat6<T> xtreeKnee = createSXform(I3, withLegSigns<T>(_wheelLocation, wheelID));
     Mat6<T> xtreeKneeRotor = createSXform(I3, withLegSigns<T>(_wheelRotorLocation, wheelID));
@@ -67,8 +67,13 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
                     xtreeKneeRotor);
     }
 
-    // add foot
-    model.addGroundContactPoint(bodyID, Vec3<T>(0, 0, -_wheelRadius), true);
+    //add "foot" of wheel
+    for (double i = 0; i < 100.0; ++i) {
+      model.addGroundContactPoint
+          (bodyID,
+           Vec3<T>(_wheelRadius * sin(2. * M_PI / 100. * i), 0, _wheelRadius * cos(2. * M_2_PI / 100. * i)),
+           false);
+    }
   }
 
   Vec3<T> g(0, 0, -9.81);

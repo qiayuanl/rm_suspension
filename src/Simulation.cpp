@@ -54,23 +54,42 @@ Simulation::Simulation(ChassisType type)
   x0.q = zero8;
   x0.qd = zero8;
 
-  x0.bodyPosition[2] = 1.2;
+  x0.bodyPosition[2] = 0.2;
   setRobotState(x0);
-  addCollisionPlane(0.9, 0.1, 0);
+  addCollisionPlane(0.5, 0., 0.);
   printf("[Simulation] Ready!\n");
+
 }
 
 void Simulation::step(double dt, double dtControl) {
+  //Fake suspension
+  for (int wheel = 0; wheel < 4; ++wheel) {
+    suspe_data_.q_[wheel] = simulator_->getState().q[wheel * 2];
+    suspe_data_.qd_[wheel] = simulator_->getState().qd[wheel * 2];
+  }
+  fake_suspe_.update(suspe_data_);
+  for (int wheel = 0; wheel < 4; ++wheel) {
+    tau_[wheel * 2] = fake_suspe_.torque_out[wheel];
+  }
+//  tau_[1] = 0.3;
+//  tau_[3] = 0.3;
+//  tau_[5] = 0.3;
+//  tau_[7] = 0.3;
+//
+
   // Low level control (if needed)
   if (currentSimTime_ >= timeOfNextLControl_) {
     timeOfNextLControl_ = timeOfNextLControl_ + dtControl;
   }
 
-  //TODO actuator model:
-  if (chassis_._chassisType == ChassisType::STANDARD) {
-  } else {
-    assert(false);
-  }
+  // actuator model:
+//  if (chassis_._chassisType == ChassisType::STANDARD) {
+//    for (int wheel = 0; wheel < 4; wheel++) {
+//      tau_[wheel] = 0;
+//    }
+//  } else {
+//    assert(false);
+//  }
   // dynamics
   currentSimTime_ += dt;
 
@@ -96,7 +115,7 @@ void Simulation::step(double dt, double dtControl) {
  */
 void Simulation::addCollisionPlane(double mu, double resti, double height,
                                    double sizeX, double sizeY) {
-  simulator_->addCollisionPlane(mu, resti, height);;
+  simulator_->addCollisionPlane(mu, resti, height);
   marker_.id = 0;
   marker_.type = visualization_msgs::Marker::CUBE;
   marker_.action = visualization_msgs::Marker::ADD;
@@ -164,7 +183,8 @@ void Simulation::runForTime(double time) {
 void Simulation::updateVis() {
 
   Quat<double> quat;
-  Vec3<double_t> pos;
+  Vec3<double> pos;
+  size_t s = sizeof(pos);
   tf::Quaternion quat_tf;
   tf::Transform tf;
   visTime_ = visTime_ + ros::Duration(1 / simParams_.vis_fps_);
@@ -183,8 +203,8 @@ void Simulation::updateVis() {
     tf.setRotation(quat_tf);
     pos = model_.getPosition(i * 2 + 6);
     tf.setOrigin(tf::Vector3(pos.x(), pos.y(), pos.z()));
-    frame = "suspension";
-    frame += std::to_string(i) + "_link";
+    frame = "suspension_";
+    frame += std::to_string(i);
     br_.sendTransform(tf::StampedTransform(tf, visTime_, "map", frame));
 
     quat = rotationMatrixToQuaternion(model_.getOrientation(i * 2 + 7));
@@ -192,8 +212,8 @@ void Simulation::updateVis() {
     tf.setRotation(quat_tf);
     pos = model_.getPosition(i * 2 + 7);
     tf.setOrigin(tf::Vector3(pos.x(), pos.y(), pos.z()));
-    frame = "wheel";
-    frame += std::to_string(i) + "_link";
+    frame = "wheel_";
+    frame += std::to_string(i);
     br_.sendTransform(tf::StampedTransform(tf, visTime_, "map", frame));
   }
 }
