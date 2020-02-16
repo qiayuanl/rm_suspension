@@ -9,7 +9,7 @@
  * the robot to connect. Use firstRun() instead!
  */
 Simulation::Simulation(ChassisType type)
-    : tau_(12) {
+    : tau_(8) {
   // init ROS
   ROS_INFO("[Simulation] Init ROS...\n");
   marker_pub_ = nh_.advertise<visualization_msgs::Marker>("visualization_marker", 10);
@@ -37,22 +37,22 @@ Simulation::Simulation(ChassisType type)
   simulator_ =
       new DynamicsSimulator<double>(model_, simParams_.use_spring_damper_);
 
-  DVec<double> zero12(12);
-  for (u32 i = 0; i < 12; i++) {
-    zero12[i] = 0.;
+  DVec<double> zero8(8);
+  for (u32 i = 0; i < 8; i++) {
+    zero8[i] = 0.;
   }
 
   // set some sane defaults:
-  tau_ = zero12;
-  jointState_.q = zero12;
-  jointState_.qd = zero12;
+  tau_ = zero8;
+  jointState_.q = zero8;
+  jointState_.qd = zero8;
   FBModelState<double> x0;
   x0.bodyOrientation = rotationMatrixToQuaternion(
       ori::coordinateRotation(CoordinateAxis::Z, 0.0));
   x0.bodyPosition.setZero();
   x0.bodyVelocity.setZero();
-  x0.q = zero12;
-  x0.qd = zero12;
+  x0.q = zero8;
+  x0.qd = zero8;
 
   x0.bodyPosition[2] = 1.2;
   setRobotState(x0);
@@ -154,91 +154,46 @@ void Simulation::addCollisionMesh(double mu, double resti, double grid_size,
 void Simulation::runForTime(double time) {
   while (currentSimTime_ < time && ros::ok()) {
     step(simParams_.dynamics_dt_, simParams_.control_dt_);
-    updateVis();
+    if (currentSimTime_ >= timeOfVis_) {
+      updateVis();
+      timeOfVis_ = currentSimTime_ + 1 / simParams_.vis_fps_;
+    }
   }
 }
+
 void Simulation::updateVis() {
 
   Quat<double> quat;
+  Vec3<double_t> pos;
   tf::Quaternion quat_tf;
   tf::Transform tf;
-  ros::Time now = ros::Time::now();
+  visTime_ = visTime_ + ros::Duration(1 / simParams_.vis_fps_);
+  std::string frame;
 
   quat = rotationMatrixToQuaternion(model_.getOrientation(5));
   quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
   tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(5).x(), model_.getPosition(5).y(), model_.getPosition(5).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "base_link"));
+  pos = model_.getPosition(5);
+  tf.setOrigin(tf::Vector3(pos.x(), pos.y(), pos.z()));
+  br_.sendTransform(tf::StampedTransform(tf, visTime_, "map", "base_link"));
 
-  quat = rotationMatrixToQuaternion(model_.getOrientation(6));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(6).x(), model_.getPosition(6).y(), model_.getPosition(6).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "abad0_link"));
+  for (int i = 0; i < 4; ++i) {
+    quat = rotationMatrixToQuaternion(model_.getOrientation(i * 2 + 6));
+    quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
+    tf.setRotation(quat_tf);
+    pos = model_.getPosition(i * 2 + 6);
+    tf.setOrigin(tf::Vector3(pos.x(), pos.y(), pos.z()));
+    frame = "suspension";
+    frame += std::to_string(i) + "_link";
+    br_.sendTransform(tf::StampedTransform(tf, visTime_, "map", frame));
 
-  quat = rotationMatrixToQuaternion(model_.getOrientation(7));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(7).x(), model_.getPosition(7).y(), model_.getPosition(7).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "hip0_link"));
-
-  quat = rotationMatrixToQuaternion(model_.getOrientation(8));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(8).x(), model_.getPosition(8).y(), model_.getPosition(8).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "knee0_link"));
-
-  quat = rotationMatrixToQuaternion(model_.getOrientation(9));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(9).x(), model_.getPosition(9).y(), model_.getPosition(9).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "abad1_link"));
-
-  quat = rotationMatrixToQuaternion(model_.getOrientation(10));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(10).x(), model_.getPosition(10).y(), model_.getPosition(10).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "hip1_link"));
-
-  quat = rotationMatrixToQuaternion(model_.getOrientation(11));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(11).x(), model_.getPosition(11).y(), model_.getPosition(11).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "knee1_link"));
-
-  quat = rotationMatrixToQuaternion(model_.getOrientation(12));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(12).x(), model_.getPosition(12).y(), model_.getPosition(12).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "abad2_link"));
-
-  quat = rotationMatrixToQuaternion(model_.getOrientation(13));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(13).x(), model_.getPosition(13).y(), model_.getPosition(13).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "hip2_link"));
-
-  quat = rotationMatrixToQuaternion(model_.getOrientation(14));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(14).x(), model_.getPosition(14).y(), model_.getPosition(14).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "knee2_link"));
-
-  quat = rotationMatrixToQuaternion(model_.getOrientation(15));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(15).x(), model_.getPosition(15).y(), model_.getPosition(15).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "abad3_link"));
-
-  quat = rotationMatrixToQuaternion(model_.getOrientation(16));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(16).x(), model_.getPosition(16).y(), model_.getPosition(16).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "hip3_link"));
-
-  quat = rotationMatrixToQuaternion(model_.getOrientation(17));
-  quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
-  tf.setRotation(quat_tf);
-  tf.setOrigin(tf::Vector3(model_.getPosition(17).x(), model_.getPosition(17).y(), model_.getPosition(17).z()));
-  br_.sendTransform(tf::StampedTransform(tf, now, "map", "knee3_link"));
+    quat = rotationMatrixToQuaternion(model_.getOrientation(i * 2 + 7));
+    quat_tf.setValue(quat[1], quat[2], quat[3], quat[0]);
+    tf.setRotation(quat_tf);
+    pos = model_.getPosition(i * 2 + 7);
+    tf.setOrigin(tf::Vector3(pos.x(), pos.y(), pos.z()));
+    frame = "wheel";
+    frame += std::to_string(i) + "_link";
+    br_.sendTransform(tf::StampedTransform(tf, visTime_, "map", frame));
+  }
 }

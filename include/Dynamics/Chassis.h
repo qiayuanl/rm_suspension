@@ -12,37 +12,16 @@
 
 #include <vector>
 
-namespace cheetah {
-constexpr size_t num_act_joint = 12;
-constexpr size_t num_q = 19;
-constexpr size_t dim_config = 18;
-constexpr size_t num_leg = 4;
-constexpr size_t num_leg_joint = 3;
-constexpr float servo_rate = 0.001;
-}  // namespace cheetah
-
-namespace linkID {
-constexpr size_t FR = 9;   // Front Right Foot
-constexpr size_t FL = 11;  // Front Left Foot
-constexpr size_t HR = 13;  // Hind Right Foot
-constexpr size_t HL = 15;  // Hind Left Foot
-
-constexpr size_t FR_abd = 2;  // Front Right Abduction
-constexpr size_t FL_abd = 0;  // Front Left Abduction
-constexpr size_t HR_abd = 3;  // Hind Right Abduction
-constexpr size_t HL_abd = 1;  // Hind Left Abduction
-}  // namespace linkID
-
 using std::vector;
 
 /*!
- * Representation of a quadruped robot's physical properties.
+ * Representation of a chassis robot's physical properties.
  *
- * When viewed from the top, the quadruped's legs are:
+ * When viewed from the top, the chassis's wheel are:
  *
  * FRONT
  * 2 1   RIGHT
- * 4 3
+ * 3 4
  * BACK
  *
  */
@@ -52,23 +31,16 @@ class Chassis {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   ChassisType _chassisType;
   T _bodyLength, _bodyWidth, _bodyHeight, _bodyMass;
-  T _abadGearRatio, _hipGearRatio, _kneeGearRatio;
-  T _abadLinkLength, _hipLinkLength, _kneeLinkLength, _maxLegLength;
+  T _suspeLinkLength, _wheelRadius;
+  T _wheelGearRatio;
   T _motorKT, _motorR, _batteryV;
   T _motorTauMax;
   T _jointDamping, _jointDryFriction;
-  SpatialInertia<T> _abadInertia, _hipInertia, _kneeInertia, _abadRotorInertia,
-      _hipRotorInertia, _kneeRotorInertia, _bodyInertia;
-  Vec3<T> _abadLocation, _abadRotorLocation, _hipLocation, _hipRotorLocation,
-      _kneeLocation, _kneeRotorLocation;
+  SpatialInertia<T> _bodyInertia, _suspeInertia, _wheelInertia, _suspeRotorInertia, _wheelRotorInertia;
+
+  Vec3<T> _suspeLocation, _suspeRotorLocation, _wheelLocation, _wheelRotorLocation;
   FloatingBaseModel<T> buildModel();
   std::vector<ActuatorModel<T>> buildActuatorModels();
-
-  static T getSideSign(int leg) {
-    const T sideSigns[4] = {-1, 1, -1, 1};
-    assert(leg >= 0 && leg < 4);
-    return sideSigns[leg];
-  }
 };
 
 template<typename T, typename T2>

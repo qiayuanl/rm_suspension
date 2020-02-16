@@ -57,8 +57,8 @@ class Simulation {
   ros::NodeHandle nh_;
   ros::Publisher marker_pub_;
   visualization_msgs::Marker marker_;
-  ros::Time timeOfVis{};
   tf::TransformBroadcaster br_;
+  ros::Time visTime_{};
 
   Chassis<double> chassis_;
   FBModelState<double> jointState_;
@@ -69,8 +69,9 @@ class Simulation {
   SimParameters simParams_;
   ChassisType type_;
 
-  double timeOfNextLControl_ = 0.;
-  double currentSimTime_ = 0.;
+  double timeOfNextLControl_{};
+  double timeOfVis_{};
+  double currentSimTime_{};
 };
 
 #endif //SUSPENSION_SIM_INCLUDE_SIMULATION_H_

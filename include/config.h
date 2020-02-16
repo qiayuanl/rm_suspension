@@ -12,9 +12,9 @@ class SimParameters {
  public:
   double dynamics_dt_;
   double control_dt_;
+  double vis_fps_;
   double floor_kp_;
   double floor_kd_;
-
   bool use_spring_damper_;
   bool go_home_;
 
@@ -30,6 +30,7 @@ class SimParameters {
 
     nh->param<double>("dynamics_dt", dynamics_dt_, 0.001);
     nh->param<double>("control_dt", control_dt_, 0.001);
+    nh->param<double>("vis_fps", vis_fps_, 60);
     nh->param<double>("floor_kp", floor_kp_, 5000);
     nh->param<double>("floor_kd", floor_kd_, 500000);
     nh->param<double>("home_kp_lin", home_kp_lin_, 2500);

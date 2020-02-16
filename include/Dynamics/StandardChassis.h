@@ -13,16 +13,12 @@ Chassis<T> buildStandardChassis() {
   chassis._chassisType = ChassisType::STANDARD;
 
   chassis._bodyMass = 3.3;
-  chassis._bodyLength = 0.19 * 2;
-  chassis._bodyWidth = 0.049 * 2;
+  chassis._bodyLength = 0.2 * 2;
+  chassis._bodyWidth = 0.2 * 2;
   chassis._bodyHeight = 0.05 * 2;
-  chassis._abadGearRatio = 6;
-  chassis._hipGearRatio = 6;
-  chassis._kneeGearRatio = 9.33;
-  chassis._abadLinkLength = 0.062;
-  chassis._hipLinkLength = 0.209;
-  chassis._kneeLinkLength = 0.175;
-  chassis._maxLegLength = 0.384;
+  chassis._suspeLinkLength = 0.2;
+  chassis._wheelRadius = 0.06;
+  chassis._wheelGearRatio = 1;
 
   chassis._motorTauMax = 3.f;
   chassis._batteryV = 24;
@@ -44,24 +40,19 @@ Chassis<T> buildStandardChassis() {
       RX * rotorRotationalInertiaZ * RX.transpose();
 
   // spatial inertias
-  Mat3<T> abadRotationalInertia;
-  abadRotationalInertia << 381, 58, 0.45, 58, 560, 0.95, 0.45, 0.95, 444;
-  abadRotationalInertia = abadRotationalInertia * 1e-6;
-  Vec3<T> abadCOM(0, 0.036, 0);  // LEFT
-  SpatialInertia<T> abadInertia(0.54, abadCOM, abadRotationalInertia);
 
-  Mat3<T> hipRotationalInertia;
-  hipRotationalInertia << 1983, 245, 13, 245, 2103, 1.5, 13, 1.5, 408;
-  hipRotationalInertia = hipRotationalInertia * 1e-6;
-  Vec3<T> hipCOM(0, 0.016, -0.02);
-  SpatialInertia<T> hipInertia(0.634, hipCOM, hipRotationalInertia);
+  Mat3<T> suspeRotationalInertia;
+  suspeRotationalInertia << 1983, 245, 13, 245, 2103, 1.5, 13, 1.5, 408;
+  suspeRotationalInertia = suspeRotationalInertia * 1e-6;
+  Vec3<T> suspeCOM(0, 0.016, -0.02);
+  SpatialInertia<T> suspeInertia(0.634, suspeCOM, suspeRotationalInertia);
 
-  Mat3<T> kneeRotationalInertia, kneeRotationalInertiaRotated;
-  kneeRotationalInertiaRotated << 6, 0, 0, 0, 248, 0, 0, 0, 245;
-  kneeRotationalInertiaRotated = kneeRotationalInertiaRotated * 1e-6;
-  kneeRotationalInertia = RY * kneeRotationalInertiaRotated * RY.transpose();
-  Vec3<T> kneeCOM(0, 0, -0.061);
-  SpatialInertia<T> kneeInertia(0.064, kneeCOM, kneeRotationalInertia);
+  Mat3<T> wheelRotationalInertia, wheelRotationalInertiaRotated;
+  wheelRotationalInertiaRotated << 6, 0, 0, 0, 248, 0, 0, 0, 245;
+  wheelRotationalInertiaRotated = wheelRotationalInertiaRotated * 1e-6;
+  wheelRotationalInertia = RY * wheelRotationalInertia * RY.transpose();
+  Vec3<T> wheelCOM(0, 0, 0);
+  SpatialInertia<T> wheelInertia(0.064, wheelCOM, wheelRotationalInertia);
 
   Vec3<T> rotorCOM(0, 0, 0);
   SpatialInertia<T> rotorInertiaX(0.055, rotorCOM, rotorRotationalInertiaX);
@@ -74,22 +65,17 @@ Chassis<T> buildStandardChassis() {
   SpatialInertia<T> bodyInertia(chassis._bodyMass, bodyCOM,
                                 bodyRotationalInertia);
 
-  chassis._abadInertia = abadInertia;
-  chassis._hipInertia = hipInertia;
-  chassis._kneeInertia = kneeInertia;
-  chassis._abadRotorInertia = rotorInertiaX;
-  chassis._hipRotorInertia = rotorInertiaY;
-  chassis._kneeRotorInertia = rotorInertiaY;
+  chassis._suspeInertia = suspeInertia;
+  chassis._suspeRotorInertia = rotorInertiaY;
+  chassis._wheelInertia = wheelInertia;
+  chassis._wheelRotorInertia = rotorInertiaY;
   chassis._bodyInertia = bodyInertia;
 
   // locations
-  chassis._abadRotorLocation = Vec3<T>(0.125, 0.049, 0);
-  chassis._abadLocation =
-      Vec3<T>(chassis._bodyLength, chassis._bodyWidth, 0) * 0.5;
-  chassis._hipLocation = Vec3<T>(0, chassis._abadLinkLength, 0);
-  chassis._hipRotorLocation = Vec3<T>(0, 0.04, 0);
-  chassis._kneeLocation = Vec3<T>(0, 0, -chassis._hipLinkLength);
-  chassis._kneeRotorLocation = Vec3<T>(0, 0, 0);
+  chassis._suspeLocation = Vec3<T>(chassis._bodyLength, chassis._bodyWidth, 0);
+  chassis._suspeRotorLocation = chassis._suspeLocation;
+  chassis._wheelLocation = Vec3<T>(-chassis._suspeLinkLength, 0, 0);
+  chassis._wheelRotorLocation = chassis._wheelLocation;
 
   return chassis;
 }
