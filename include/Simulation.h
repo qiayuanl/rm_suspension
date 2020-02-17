@@ -13,9 +13,15 @@
 #include <tf/transform_broadcaster.h>
 #include <rosbag/bag.h>
 #include <Utilities/FakeSuspe.h>
+#include <Utilities/Controller.h>
+#include <geometry_msgs/Twist.h>
+
 struct VisData {
-  Quat<double> quat[9];
-  Vec3<double> pos[9];
+  Quat<double> tfQuat[9];
+  Vec3<double> tfPos[9];
+  vector<Vec3<double >> cpPos;
+  vector<Vec3<double>> cpForce;
+  geometry_msgs::Twist baseMsg;
 };
 
 /*!
@@ -47,7 +53,7 @@ class Simulation {
                         bool transparent = true);
 
   void runForTime(double time);
-  void play(double scalr);
+  void play(double scale);
   void resetSimTime() {
     currentSimTime_ = 0.;
     timeOfNextLControl_ = 0.;
@@ -62,7 +68,8 @@ class Simulation {
 
  private:
   ros::NodeHandle nh_;
-  ros::Publisher marker_pub_;
+  ros::Publisher markerPub_;
+  ros::Publisher twistPub_;
   visualization_msgs::Marker marker_;
   tf::TransformBroadcaster br_;
 
@@ -76,14 +83,19 @@ class Simulation {
   ChassisType type_;
 
   FakeSuspe fake_suspe_;
-  SuspeData suspe_data_;
+  SuspeData suspe_data_{};
+  Controller controller_;
   vector<VisData> visData_;
+
   double timeOfNextLControl_{};
   double timeOfRecord_{};
   double timeOfPrint_{};
   double currentSimTime_{};
 
   void record();
+  void sendTf(vector<VisData>::iterator iter);
+  void sendCP(vector<VisData>::iterator iter);
+  void sendMsg(vector<VisData>::iterator iter);
 };
 
 #endif //SUSPENSION_SIM_INCLUDE_SIMULATION_H_

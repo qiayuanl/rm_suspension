@@ -12,13 +12,13 @@ Chassis<T> buildStandardChassis() {
   Chassis<T> chassis;
   chassis._chassisType = ChassisType::STANDARD;
 
-  chassis._bodyMass = 5.;
-  chassis._bodyLength = 0.04 * 2;
-  chassis._bodyWidth = 0.09 * 2;
-  chassis._bodyHeight = 0.02 * 2;
+  chassis._bodyMass = 12.;
+  chassis._bodyLength = 0.58;
+  chassis._bodyWidth = 0.52;
+  chassis._bodyHeight = 0.1;
   chassis._suspeLinkLength = 0.2;
   chassis._wheelRadius = 0.075;
-  chassis._wheelGearRatio = 1;
+  chassis._wheelGearRatio = 6;
 
   chassis._motorTauMax = 3.f;
   chassis._batteryV = 24;
@@ -30,7 +30,7 @@ Chassis<T> buildStandardChassis() {
   // rotor inertia if the rotor is oriented so it spins around the z-axis
   Mat3<T> rotorRotationalInertiaZ;
   rotorRotationalInertiaZ << 33, 0, 0, 0, 33, 0, 0, 0, 63;
-  rotorRotationalInertiaZ = 1e-5 * rotorRotationalInertiaZ;
+  rotorRotationalInertiaZ = 1e-6 * rotorRotationalInertiaZ;
 
   Mat3<T> RY = coordinateRotation<T>(CoordinateAxis::Y, M_PI / 2);
   Mat3<T> RX = coordinateRotation<T>(CoordinateAxis::X, M_PI / 2);
@@ -56,11 +56,13 @@ Chassis<T> buildStandardChassis() {
   SpatialInertia<T> rotorInertiaX(0.055, rotorCOM, rotorRotationalInertiaX);
   SpatialInertia<T> rotorInertiaY(0.055, rotorCOM, rotorRotationalInertiaY);
 
-  Mat3<T> bodyRotationalInertia;
-  bodyRotationalInertia << 0.066958, 0, 0, 0, 0.087692, 0, 0, 0, 0.078993;
+//  Mat3<T> bodyRotationalInertia;
+//  bodyRotationalInertia << 0.066958, 0, 0, 0, 0.087692, 0, 0, 0, 0.078993;
   Vec3<T> bodyCOM(0, 0, 0);
+  Vec3<T> bodyDims(chassis._bodyLength, chassis._bodyWidth,
+                   chassis._bodyHeight);
   SpatialInertia<T> bodyInertia(chassis._bodyMass, bodyCOM,
-                                bodyRotationalInertia);
+                                rotInertiaOfBox(chassis._bodyMass, bodyDims));
 
   chassis._suspeInertia = suspeInertia;
   chassis._suspeRotorInertia = rotorInertiaY;
