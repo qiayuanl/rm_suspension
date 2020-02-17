@@ -27,4 +27,5 @@ add_executable(sim "main.cpp" ${sources})
 
 target_link_libraries(sim
     ${catkin_LIBRARIES}
+    curses
     )

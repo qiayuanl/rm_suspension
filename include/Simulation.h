@@ -47,7 +47,7 @@ class Simulation {
                         bool transparent = true);
 
   void runForTime(double time);
-  void play();
+  void play(double scalr);
   void resetSimTime() {
     currentSimTime_ = 0.;
     timeOfNextLControl_ = 0.;

@@ -54,9 +54,9 @@ Simulation::Simulation(ChassisType type)
   x0.q = zero8;
   x0.qd = zero8;
 
-  x0.bodyPosition[2] = 0.5;
+  x0.bodyPosition[2] = 1.2;
   setRobotState(x0);
-  addCollisionPlane(0.7, 0.2, 0.);
+  addCollisionPlane(0.3, 0, 0.);
   printf("[Simulation] Ready!\n");
 
 }
@@ -76,20 +76,13 @@ void Simulation::step(double dt, double dtControl) {
   if (currentSimTime_ >= timeOfNextLControl_) {
     timeOfNextLControl_ = timeOfNextLControl_ + dtControl;
   }
-
+  double torque_out[4] = {0.8, 0.8, -0.8, -0.8};
   // actuator model:
-//  if (chassis_._chassisType == ChassisType::STANDARD) {
-//    for (int wheel = 0; wheel < 4; wheel++) {
-//      tau_[wheel] = 0;
-//    }
-//  } else {
-//    assert(false);
-//  }
-  tau_[1] = 0.3;
-  tau_[3] = 0.3;
-  tau_[5] = 0.3;
-  tau_[7] = 0.3;
-
+  for (int wheelID = 0; wheelID < 4; wheelID++) {
+    tau_[wheelID * 2 + 1] = actuatorModels_[0].getTorque(
+        torque_out[wheelID],
+        simulator_->getState().qd[wheelID * 2 + 1]);
+  }
   // dynamics
   currentSimTime_ += dt;
 
@@ -166,21 +159,20 @@ void Simulation::addCollisionMesh(double mu, double resti, double grid_size,
 
 /*!
  * Runs the simulator for time xxx
- *
- * Updates graphics at 60 fps.
- * @param
+  * @param
  */
 void Simulation::runForTime(double time) {
   printf("[Simulation] Computing...\n");
   visData_.clear();
   while (currentSimTime_ < time && ros::ok()) {
     step(simParams_.dynamics_dt_, simParams_.control_dt_);
+
     if (currentSimTime_ >= timeOfRecord_) {
       record();
       timeOfRecord_ = currentSimTime_ + 1. / simParams_.vis_fps_;
     }
     if (ros::Time::now().toSec() >= timeOfPrint_) {
-      printf("\r[Simulation] %.5lf%%", currentSimTime_ / time);
+      printf("\r[Simulation] %.5lf%%", currentSimTime_ / time * 100.);
       fflush(stdout);
       timeOfPrint_ = ros::Time::now().toSec() + 1.;
     }
@@ -201,15 +193,15 @@ void Simulation::record() {
   visData_.push_back(vis_data);
 }
 
-void Simulation::play() {
-  printf("[Simulation] Start play!\n");
+void Simulation::play(double scalr) {
+  printf("[Simulation] \nStart play!\n");
   tf::Quaternion quat_tf;
   tf::Transform tf;
   std::string frame;
 
   auto iter = visData_.begin();
 
-  ros::Rate loop_rate(simParams_.vis_fps_);
+  ros::Rate loop_rate(simParams_.vis_fps_ / scalr);
   while (ros::ok() && iter != visData_.end()) {
     ros::Time now = ros::Time::now();
 

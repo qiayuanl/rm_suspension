@@ -12,10 +12,10 @@ Chassis<T> buildStandardChassis() {
   Chassis<T> chassis;
   chassis._chassisType = ChassisType::STANDARD;
 
-  chassis._bodyMass = 10.;
+  chassis._bodyMass = 5.;
   chassis._bodyLength = 0.04 * 2;
   chassis._bodyWidth = 0.09 * 2;
-  chassis._bodyHeight = 0.05 * 2;
+  chassis._bodyHeight = 0.02 * 2;
   chassis._suspeLinkLength = 0.2;
   chassis._wheelRadius = 0.075;
   chassis._wheelGearRatio = 1;
@@ -30,7 +30,7 @@ Chassis<T> buildStandardChassis() {
   // rotor inertia if the rotor is oriented so it spins around the z-axis
   Mat3<T> rotorRotationalInertiaZ;
   rotorRotationalInertiaZ << 33, 0, 0, 0, 33, 0, 0, 0, 63;
-  rotorRotationalInertiaZ = 1e-6 * rotorRotationalInertiaZ;
+  rotorRotationalInertiaZ = 1e-5 * rotorRotationalInertiaZ;
 
   Mat3<T> RY = coordinateRotation<T>(CoordinateAxis::Y, M_PI / 2);
   Mat3<T> RX = coordinateRotation<T>(CoordinateAxis::X, M_PI / 2);
@@ -39,7 +39,7 @@ Chassis<T> buildStandardChassis() {
   Mat3<T> rotorRotationalInertiaY =
       RX * rotorRotationalInertiaZ * RX.transpose();
 
-  // spatial inertias
+  // spatial inertia
 
   Mat3<T> suspeRotationalInertia;
   suspeRotationalInertia << 1983, 245, 13, 245, 2103, 1.5, 13, 1.5, 408;
@@ -47,20 +47,17 @@ Chassis<T> buildStandardChassis() {
   Vec3<T> suspeCOM(0, 0.016, -0.02);
   SpatialInertia<T> suspeInertia(0.634, suspeCOM, suspeRotationalInertia);
 
-  Mat3<T> wheelRotationalInertia, wheelRotationalInertiaRotated;
-  wheelRotationalInertiaRotated << 6, 0, 0, 0, 248, 0, 0, 0, 245;
-  wheelRotationalInertiaRotated = wheelRotationalInertiaRotated * 1e-6;
-  wheelRotationalInertia = RY * wheelRotationalInertiaRotated * RY.transpose();
+  Mat3<T> wheelRotationalInertia;
+  wheelRotationalInertia << 1.6338e-05, 0, 0, 0, 1.2822e-05, 0, 0, 0, 1.6338e-05;
   Vec3<T> wheelCOM(0, 0, 0);
-  SpatialInertia<T> wheelInertia(0.064, wheelCOM, wheelRotationalInertia);
+  SpatialInertia<T> wheelInertia(0.146, wheelCOM, wheelRotationalInertia);
 
   Vec3<T> rotorCOM(0, 0, 0);
   SpatialInertia<T> rotorInertiaX(0.055, rotorCOM, rotorRotationalInertiaX);
   SpatialInertia<T> rotorInertiaY(0.055, rotorCOM, rotorRotationalInertiaY);
 
   Mat3<T> bodyRotationalInertia;
-  bodyRotationalInertia << 11253, 0, 0, 0, 36203, 0, 0, 0, 42673;
-  bodyRotationalInertia = bodyRotationalInertia * 1e-6;
+  bodyRotationalInertia << 0.066958, 0, 0, 0, 0.087692, 0, 0, 0, 0.078993;
   Vec3<T> bodyCOM(0, 0, 0);
   SpatialInertia<T> bodyInertia(chassis._bodyMass, bodyCOM,
                                 bodyRotationalInertia);

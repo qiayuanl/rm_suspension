@@ -72,7 +72,7 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
       model.addGroundContactPoint
           (bodyID,
            Vec3<T>(_wheelRadius * sin(2. * M_PI / 20. * i), 0, _wheelRadius * cos(2. * M_PI / 20. * i)),
-           false);
+           true);
     }
   }
 
