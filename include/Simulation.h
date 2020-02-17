@@ -15,6 +15,7 @@
 #include <Utilities/FakeSuspe.h>
 #include <Utilities/Controller.h>
 #include <geometry_msgs/Twist.h>
+#include <rm_suspension/JointData.h>
 
 struct VisData {
   Quat<double> tfQuat[9];
@@ -22,6 +23,7 @@ struct VisData {
   vector<Vec3<double >> cpPos;
   vector<Vec3<double>> cpForce;
   geometry_msgs::Twist baseMsg;
+  rm_suspension::JointData jointData;
 };
 
 /*!
@@ -43,7 +45,7 @@ class Simulation {
 
   void step(double dt, double dtControl);
   void addCollisionPlane(double mu, double resti, double height,
-                         double sizeX = 10, double sizeY = 10);
+                         double sizeX = 20, double sizeY = 20);
   void addCollisionBox(double mu, double resti, double depth, double width,
                        double height, const Vec3<double> &pos,
                        const Mat3<double> &ori);
@@ -70,11 +72,11 @@ class Simulation {
   ros::NodeHandle nh_;
   ros::Publisher markerPub_;
   ros::Publisher twistPub_;
+  ros::Publisher jointPub_;
   visualization_msgs::Marker marker_;
   tf::TransformBroadcaster br_;
 
   Chassis<double> chassis_;
-  FBModelState<double> jointState_;
   FloatingBaseModel<double> model_;
   DVec<double> tau_;
   DynamicsSimulator<double> *simulator_ = nullptr;
@@ -82,8 +84,8 @@ class Simulation {
   SimParameters simParams_;
   ChassisType type_;
 
-  FakeSuspe fake_suspe_;
-  SuspeData suspe_data_{};
+  FakeSuspe fakeSuspe_;
+  SuspeData suspeData_{};
   Controller controller_;
   vector<VisData> visData_;
 

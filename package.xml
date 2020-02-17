@@ -21,7 +21,8 @@
     <exec_depend>using_markers</exec_depend>
     <build_depend>visualization_msgs</build_depend>
     <exec_depend>visualization_msgs</exec_depend>
-
+    <build_depend>geometry_msgs</build_depend>
+    <exec_depend>geometry_msgs</exec_depend>
     <!-- The export tag contains other, unspecified, tags -->
     <export>
         <!-- Other tools can request additional information be placed here -->

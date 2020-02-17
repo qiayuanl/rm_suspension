@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "sim");
 
   Simulation simulation(ChassisType::STANDARD);
-  simulation.runForTime(3.);
+  simulation.runForTime(4.);
 
   while (ros::ok()) {
     simulation.play(1.);

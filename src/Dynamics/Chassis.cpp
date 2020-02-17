@@ -68,10 +68,20 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
     }
 
     //add "foot" of wheel
-    for (int i = 0; i < 16; ++i) {
+    for (int i = 0; i < 16; ++i) {    //Mecanum wheel of robomaster has 16 rotor
+      double angle = 2. * M_PI / 16. * i;
       model.addGroundContactPoint
           (bodyID,
-           Vec3<T>(_wheelRadius * sin(2. * M_PI / 16. * i), 0, _wheelRadius * cos(2. * M_PI / 16. * i)),
+           Vec3<T>(_wheelRadius * sin(angle), 0, _wheelRadius * cos(angle)),
+           true);
+      //Add two more contact point for higher accuracy
+      model.addGroundContactPoint
+          (bodyID,
+           Vec3<T>(_wheelRadius * sin(angle + M_PI / 0.0111), 0, _wheelRadius * cos(angle + M_PI / 0.0111)),
+           true);
+      model.addGroundContactPoint
+          (bodyID,
+           Vec3<T>(_wheelRadius * sin(angle - M_PI / 0.0111), 0, _wheelRadius * cos(angle - M_PI / 0.0111)),
            true);
     }
   }

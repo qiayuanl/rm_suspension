@@ -30,7 +30,7 @@ class SimParameters {
 
     nh->param<double>("dynamics_dt", dynamics_dt_, 0.005);
     nh->param<double>("control_dt", control_dt_, 0.001);
-    nh->param<double>("vis_fps", vis_fps_, 50);
+    nh->param<double>("vis_fps", vis_fps_, 250);
     nh->param<double>("floor_kp", floor_kp_, 5000);
     nh->param<double>("floor_kd", floor_kd_, 500000);
     nh->param<double>("home_kp_lin", home_kp_lin_, 2500);

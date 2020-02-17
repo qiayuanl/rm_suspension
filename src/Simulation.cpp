@@ -19,7 +19,8 @@ Simulation::Simulation(ChassisType type)
     ROS_INFO_ONCE("[Simulation] Wait for subscriber to the marker\n");
     sleep(1);
   }
-  twistPub_ = nh_.advertise<geometry_msgs::Twist>("base_twist", 10);
+  twistPub_ = nh_.advertise<geometry_msgs::Twist>("base_twist", 100);
+  jointPub_ = nh_.advertise<rm_suspension::JointData>("joint_data", 100);
 
   // init parameters
   printf("[Simulation] Load parameters...\n");
@@ -45,34 +46,33 @@ Simulation::Simulation(ChassisType type)
 
   // set some sane defaults:
   tau_ = zero8;
-  jointState_.q = zero8;
-  jointState_.qd = zero8;
-  FBModelState<double> x0;
-  x0.bodyOrientation = rotationMatrixToQuaternion(
+  FBModelState<double> robotState;
+  robotState.q = zero8;
+  robotState.qd = zero8;
+  robotState.bodyOrientation = rotationMatrixToQuaternion(
       ori::coordinateRotation(CoordinateAxis::Z, 0.0));
-  x0.bodyPosition.setZero();
-  x0.bodyVelocity.setZero();
-  x0.q = zero8;
-  x0.qd = zero8;
+  robotState.bodyPosition.setZero();
+  robotState.bodyVelocity.setZero();
+  robotState.q = zero8;
+  robotState.qd = zero8;
+  robotState.bodyPosition[2] = 0.1;
+  setRobotState(robotState);
 
-  x0.bodyPosition[2] = 1.2;
-  setRobotState(x0);
   addCollisionPlane(0.7, 0, 0.);
-  Vec3<double> pos(0, 0, 0.1);
-  addCollisionBox(0.7, 0, 4., 1, 0.2, pos,
-                  coordinateRotation<double>(CoordinateAxis::Z, 0));
+  addCollisionBox(0.7, 0, 4., 1., 0.1, Vec3<double>(1.5, 0, 0),
+                  coordinateRotation<double>(CoordinateAxis::Y, 0.12222)); //17 degree
   printf("[Simulation] Ready!\n");
 }
 
 void Simulation::step(double dt, double dtControl) {
   //Fake suspension
   for (int wheel = 0; wheel < 4; ++wheel) {
-    suspe_data_.q_[wheel] = simulator_->getState().q[wheel * 2];
-    suspe_data_.qd_[wheel] = simulator_->getState().qd[wheel * 2];
+    suspeData_.q_[wheel] = simulator_->getState().q[wheel * 2];
+    suspeData_.qd_[wheel] = simulator_->getState().qd[wheel * 2];
   }
-  fake_suspe_.update(suspe_data_);
+  fakeSuspe_.update(suspeData_);
   for (int wheel = 0; wheel < 4; ++wheel) {
-    tau_[wheel * 2] = fake_suspe_.torque_out_[wheel];
+    tau_[wheel * 2] = fakeSuspe_.torque_out_[wheel];
   }
 
   // Low level control
@@ -84,7 +84,7 @@ void Simulation::step(double dt, double dtControl) {
     controller_.update(qd, currentSimTime_);
     timeOfNextLControl_ = timeOfNextLControl_ + dtControl;
   }
-  // actuator model:
+  // actuator model: only for wheel acatuator
   for (int wheelID = 0; wheelID < 4; wheelID++) {
     tau_[wheelID * 2 + 1] = actuatorModels_[0].getTorque(
         controller_.torque_out_[wheelID],
@@ -140,7 +140,7 @@ void Simulation::addCollisionPlane(double mu, double resti, double height,
 
 /*!
  * Add an box collision to the simulator
- * @param mu          : location of the box
+ * @param mu          : friction of the mu
  * @param resti       : restitution coefficient
  * @param depth       : depth (x) of box
  * @param width       : width (y) of box
@@ -157,12 +157,14 @@ void Simulation::addCollisionBox(double mu, double resti, double depth,
   marker_.id = 1;
   marker_.type = visualization_msgs::Marker::CUBE;
   marker_.action = visualization_msgs::Marker::ADD;
-
+  marker_.pose.position.x = pos.x();
+  marker_.pose.position.y = pos.y();
   marker_.pose.position.z = pos.z();
-//  marker_.pose.orientation.x = ;
-//  marker_.pose.orientation.y = ;
-//  marker_.pose.orientation.z = ;
-//  marker_.pose.orientation.w = ;
+  Quat<double> quat = rotationMatrixToQuaternion(ori);
+  marker_.pose.orientation.x = quat.x();
+  marker_.pose.orientation.y = quat.y();
+  marker_.pose.orientation.z = quat.z();
+  marker_.pose.orientation.w = quat.w();
 
   // Set the scale of the marker -- 1x1x1 here means 1m on a side
   marker_.scale.x = depth;
@@ -229,7 +231,7 @@ void Simulation::record() {
       vis_data.cpPos.push_back(simulator_->getModel()._pGC[i]);
     }
   }
-  ///////////////////////////////record base Twist for plot//////////////////////////
+  ///////////////////////////////record base twist and joint data for plot//////////////////////////
   vis_data.baseMsg.linear.x = vis_data.tfPos[0].x();
   vis_data.baseMsg.linear.y = vis_data.tfPos[0].y();
   vis_data.baseMsg.linear.z = vis_data.tfPos[0].z();
@@ -237,6 +239,12 @@ void Simulation::record() {
   vis_data.baseMsg.angular.x = rpy.x();
   vis_data.baseMsg.angular.y = rpy.y();
   vis_data.baseMsg.angular.z = rpy.z();
+  for (int wheelID = 0; wheelID < 4; ++wheelID) {
+    vis_data.jointData.q_suspe[wheelID] = simulator_->getState().q[wheelID * 2];
+    vis_data.jointData.qd_suspe[wheelID] = simulator_->getState().qd[wheelID * 2];
+    vis_data.jointData.tau_suspe[wheelID] = tau_[wheelID * 2];
+    vis_data.jointData.qd_wheel[wheelID] = simulator_->getState().qd[wheelID * 2 + 1];
+  }
 
   visData_.push_back(vis_data);
 }
@@ -306,7 +314,7 @@ void Simulation::sendCP(vector<VisData>::iterator iter) {
   marker.id = 2;
   marker.type = visualization_msgs::Marker::LINE_LIST;
   marker.action = visualization_msgs::Marker::ADD;
-  marker.lifetime = ros::Duration(0.05);
+  marker.lifetime = ros::Duration(0.011);
 
   auto cpP = iter->cpPos.begin();
   auto cpF = iter->cpForce.begin();
@@ -331,5 +339,6 @@ void Simulation::sendCP(vector<VisData>::iterator iter) {
 
 void Simulation::sendMsg(vector<VisData>::iterator iter) {
   twistPub_.publish(iter->baseMsg);
+  jointPub_.publish(iter->jointData);
 }
 

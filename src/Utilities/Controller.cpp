@@ -9,5 +9,5 @@ void Controller::update(double *qd, double cTime) {
   }
 }
 void Controller::setSpeed(double speed) {
-  qd_des_ = speed;
+  qd_des_ = -speed;
 }
