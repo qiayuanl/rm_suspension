@@ -37,6 +37,10 @@ class ContactConstraint {
     _collision_list.push_back(collision);
     ++_nCollision;
   }
+  void DeleteAllCollision() {
+    _collision_list.clear();
+    _nCollision = 0;
+  }
 
   /*!
    * Used for spring damper based contact constraint method

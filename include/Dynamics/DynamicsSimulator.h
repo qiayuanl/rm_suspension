@@ -107,6 +107,9 @@ class DynamicsSimulator {
         new CollisionMesh<T>(mu, rest, grid_size, left_corner_loc, height_map));
   }
 
+  void deleteAllCollision() {
+    _contact_constr->DeleteAllCollision();
+  }
   size_t getNumBodies() { return _model._nDof; }
 
   const size_t &getTotalNumGC() { return _model._nGroundContact; }

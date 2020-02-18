@@ -53,7 +53,9 @@ class Simulation {
                         const Vec3<double> &left_corner_loc,
                         const DMat<double> &height_map, bool addToWindow = true,
                         bool transparent = true);
+  void clearCollision();
 
+  void setSpeed(double speed);
   void runForTime(double time);
   void play(double scale);
   void resetSimTime() {
@@ -89,6 +91,7 @@ class Simulation {
   Controller controller_;
   vector<VisData> visData_;
 
+  size_t markerId_{};
   double timeOfNextLControl_{};
   double timeOfRecord_{};
   double timeOfPrint_{};
