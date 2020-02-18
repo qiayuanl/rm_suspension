@@ -46,21 +46,6 @@ Simulation::Simulation(ChassisType type)
 
   // set some sane defaults:
   tau_ = zero8;
-  FBModelState<double> robotState;
-  robotState.q = zero8;
-  robotState.qd = zero8;
-  robotState.bodyOrientation = rotationMatrixToQuaternion(
-      ori::coordinateRotation(CoordinateAxis::Z, 0.0));
-  robotState.bodyPosition.setZero();
-  robotState.bodyVelocity.setZero();
-  robotState.q = zero8;
-  robotState.qd = zero8;
-  robotState.bodyPosition[2] = 0.1;
-  setRobotState(robotState);
-
-  addCollisionPlane(0.7, 0, 0.);
-  addCollisionBox(0.7, 0, 4., 1., 0.1, Vec3<double>(1.5, 0, 0),
-                  coordinateRotation<double>(CoordinateAxis::Y, 0.12222)); //17 degree
   printf("[Simulation] Ready!\n");
 }
 
@@ -154,7 +139,7 @@ void Simulation::addCollisionBox(double mu, double resti, double depth,
                                  const Vec3<double> &pos,
                                  const Mat3<double> &ori) {
   simulator_->addCollisionBox(mu, resti, depth, width, height, pos, ori);
-  marker_.id = 1;
+  marker_.id = ++markerId_;
   marker_.type = visualization_msgs::Marker::CUBE;
   marker_.action = visualization_msgs::Marker::ADD;
   marker_.pose.position.x = pos.x();
@@ -192,9 +177,9 @@ void Simulation::addCollisionMesh(double mu, double resti, double grid_size,
   * @param
  */
 void Simulation::runForTime(double time) {
-  printf("[Simulation] Computing...\n");
   visData_.clear();
-  controller_.setSpeed(3. / chassis_._wheelRadius);
+  resetSimTime();
+  printf("[Simulation] Computing...\n");
   while (currentSimTime_ < time && ros::ok()) {
     step(simParams_.dynamics_dt_, simParams_.control_dt_);
     if (currentSimTime_ >= timeOfRecord_) {
@@ -203,10 +188,14 @@ void Simulation::runForTime(double time) {
     }
     if (ros::Time::now().toSec() >= timeOfPrint_) {
       printf("\r[Simulation] %.5lf%%", currentSimTime_ / time * 100.);
-      fflush(stdout);
+      fflush(stdout); //for console in clion
       timeOfPrint_ = ros::Time::now().toSec() + 1.;
     }
   }
+}
+
+void Simulation::setSpeed(double speed) {
+  controller_.setSpeed(speed / chassis_._wheelRadius);
 }
 
 void Simulation::record() {
@@ -223,7 +212,6 @@ void Simulation::record() {
   }
   //////////////////////////record contact force data///////////////////////////////
   int _nTotalGC = simulator_->getTotalNumGC();
-
   for (size_t i(0); i < _nTotalGC; ++i) {
     Vec3<double> f = simulator_->getContactForce(i);
     if (f.norm() > 0.) {
@@ -311,7 +299,7 @@ void Simulation::sendCP(vector<VisData>::iterator iter) {
   marker.color.g = 1.0;
   marker.scale.x = .01;
   marker.pose.orientation.w = 1;
-  marker.id = 2;
+  marker.id = 5; //large enough to avoid cover marker create at set up
   marker.type = visualization_msgs::Marker::LINE_LIST;
   marker.action = visualization_msgs::Marker::ADD;
   marker.lifetime = ros::Duration(0.011);
@@ -340,5 +328,13 @@ void Simulation::sendCP(vector<VisData>::iterator iter) {
 void Simulation::sendMsg(vector<VisData>::iterator iter) {
   twistPub_.publish(iter->baseMsg);
   jointPub_.publish(iter->jointData);
+}
+void Simulation::clearCollision() {
+  visualization_msgs::Marker marker;
+  marker.action = visualization_msgs::Marker::DELETEALL;
+  markerPub_.publish(marker);
+
+  markerId_ = 0;
+  simulator_->deleteAllCollision();
 }
 

@@ -62,6 +62,7 @@ class Simulation {
     currentSimTime_ = 0.;
     timeOfNextLControl_ = 0.;
     timeOfPrint_ = 0;
+    timeOfRecord_ = 0;
   }
 
   ~Simulation() {
@@ -92,10 +93,10 @@ class Simulation {
   vector<VisData> visData_;
 
   size_t markerId_{};
+  double currentSimTime_{};
   double timeOfNextLControl_{};
   double timeOfRecord_{};
   double timeOfPrint_{};
-  double currentSimTime_{};
 
   void record();
   void sendTf(vector<VisData>::iterator iter);
