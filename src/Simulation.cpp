@@ -179,7 +179,6 @@ void Simulation::addCollisionMesh(double mu, double resti, double grid_size,
 void Simulation::runForTime(double time) {
   visData_.clear();
   resetSimTime();
-  printf("[Simulation] Computing...\n");
   while (currentSimTime_ < time && ros::ok()) {
     step(simParams_.dynamics_dt_, simParams_.control_dt_);
     if (currentSimTime_ >= timeOfRecord_) {
@@ -187,7 +186,7 @@ void Simulation::runForTime(double time) {
       timeOfRecord_ = currentSimTime_ + 1. / simParams_.vis_fps_;
     }
     if (ros::Time::now().toSec() >= timeOfPrint_) {
-      printf("\r[Simulation] %.5lf%%", currentSimTime_ / time * 100.);
+      printf("\r[Simulation] Computing... %.3lf%%", currentSimTime_ / time * 100.);
       fflush(stdout); //for console in clion
       timeOfPrint_ = ros::Time::now().toSec() + 1.;
     }
