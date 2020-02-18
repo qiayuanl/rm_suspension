@@ -16,8 +16,8 @@ int main(int argc, char **argv) {
     simulation.clearCollision();
     simulation.resetSimTime();
     selectSimType(&simulation);
-    while (selectSimTime(&simulation)) {
-      while (selectPlaySpeed(&simulation)) {
+    while (selectSimTime(&simulation) && ros::ok()) {
+      while (selectPlaySpeed(&simulation) && ros::ok()) {
       }
     }
   }
@@ -41,12 +41,12 @@ void selectSimType(Simulation *sim) {
   robotState.bodyPosition[2] = 0.1;
   sim->addCollisionPlane(0.7, 0, 0.);
   char input;
-  while (true) { //loop until legal input
+  while (true && ros::ok()) { //loop until legal input
     printf(" Simulation Type:\n\r");
     printf(" a - Drop from 1.2 meter height\n\r");
     printf(" b - Run down the stairs\n\r");
-    printf(" c - Flying ramp (17 degree)\n\r");
-    printf(" d - Brake in max speed\n\r");
+    printf(" c - Fly the ramp (17 degree)\n\r");
+    printf(" d - Brake in maxium speed\n\r");
     printf(" e - Diagonally across the ramp\n\r");
     std::cin >> input;
     double stairs_height = 0.2;
@@ -77,8 +77,19 @@ void selectSimType(Simulation *sim) {
       }
         break;
       case 'd': {
-        robotState.bodyVelocity[3] = 3.;
+        robotState.bodyVelocity[3] = 1.;
         sim->setSpeed(0.);
+      }
+      case 'e': {
+        sim->addCollisionBox(0.7, 0,
+                             1.197323, 1., 0.01,
+                             Vec3<double>(1. + 1.145 / 2. + 0.005,
+                                          0.,
+                                          1.145 * tan(0.094444 * M_PI) / 2. - 0.005),
+                             coordinateRotation<double>(CoordinateAxis::Y, 0.094444 * M_PI)
+                                 * coordinateRotation<double>(CoordinateAxis::Z, M_PI_4));
+        robotState.bodyVelocity[3] = 1.;
+        sim->setSpeed(1.);
       }
         break;
       default: {
@@ -94,7 +105,7 @@ void selectSimType(Simulation *sim) {
 bool selectSimTime(Simulation *sim) {
 
   char input;
-  while (true) {
+  while (true && ros::ok()) {
     printf("\n\r Simulation Time:\n\r");
     printf(" a - 0.5 s\n\r");
     printf(" b - 1.0 s\n\r");

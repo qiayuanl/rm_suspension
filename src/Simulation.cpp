@@ -69,7 +69,7 @@ void Simulation::step(double dt, double dtControl) {
     controller_.update(qd, currentSimTime_);
     timeOfNextLControl_ = timeOfNextLControl_ + dtControl;
   }
-  // actuator model: only for wheel acatuator
+  // actuator model: only for wheel acautor
   for (int wheelID = 0; wheelID < 4; wheelID++) {
     tau_[wheelID * 2 + 1] = actuatorModels_[0].getTorque(
         controller_.torque_out_[wheelID],
