@@ -1,3 +1,4 @@
+################################SimParams###########################
 dynamics_dt: 0.001
 control_dt: 0.001
 floor_kp: 5000
@@ -11,3 +12,12 @@ go_home: false
 #floating point value in table should define with decimal point
 home_pos: [0.,0.,.5]
 home_rpy: [0.,0.,0.]
+
+  ###############################SuspeParams##########################
+  spring_joint_pos: [];
+  double spring_length_;
+  double spring_kp_;
+  double spring_kd_;
+  double spring_range_;
+  double spring_preload_;
+  double arm_0_length_;

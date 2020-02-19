@@ -4,6 +4,8 @@
 
 #ifndef SRC_RM_SUSPENSION_INCLUDE_UTILITIES_FAKESUSPE_H_
 #define SRC_RM_SUSPENSION_INCLUDE_UTILITIES_FAKESUSPE_H_
+#include <config.h>
+
 struct SuspeData {
   float q_[4];
   float qd_[4];
@@ -15,6 +17,7 @@ class FakeSuspe {
   ~FakeSuspe() = default;
   void update(SuspeData &data);
   float torque_out_[4]{};
+
 };
 
 #endif //SRC_RM_SUSPENSION_INCLUDE_UTILITIES_FAKESUSPE_H_

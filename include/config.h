@@ -28,7 +28,7 @@ class SimParameters {
   void getParam(ros::NodeHandle *nh) {
     XmlRpc::XmlRpcValue param;
 
-    nh->param<double>("dynamics_dt", dynamics_dt_, 0.005);
+    nh->param<double>("dynamics_dt", dynamics_dt_, 0.0001);
     nh->param<double>("control_dt", control_dt_, 0.001);
     nh->param<double>("vis_fps", vis_fps_, 250);
     nh->param<double>("floor_kp", floor_kp_, 5000);
@@ -44,6 +44,29 @@ class SimParameters {
       home_pos_ << param[0], param[1], param[2];
     if (nh->getParam("home_rpy", param))
       home_rpy_ << param[0], param[1], param[2];
+  };
+};
+
+class SuspeParameters {
+ public:
+  double spring_joint_length_;
+  double spring_length_;
+  double spring_kp_;
+  double spring_kd_;
+  double spring_range_;
+  double spring_preload_;
+  double arm_0_length_;
+
+  void getParam(ros::NodeHandle *nh) {
+    XmlRpc::XmlRpcValue param;
+    nh->param<double>("spring_length", spring_length_, 120.);
+    nh->param<double>("spring_kp", spring_kp_, 5.);
+    nh->param<double>("spring_kd", spring_kd_, 120.);
+    nh->param<double>("spring_range", spring_range_, 30.);
+    nh->param<double>("spring_preload", spring_preload_, 0.);
+    nh->param<double>("arm_0_length", arm_0_length_, 120.);
+    nh->param<double>("spring_joint_length", spring_joint_length_, 120.);
+
   };
 };
 

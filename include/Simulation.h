@@ -99,9 +99,9 @@ class Simulation {
   double timeOfPrint_{};
 
   void record();
-  void sendTf(vector<VisData>::iterator iter);
-  void sendCP(vector<VisData>::iterator iter);
-  void sendMsg(vector<VisData>::iterator iter);
+  void sendTf(const vector<VisData>::iterator &iter);
+  void sendCP(const vector<VisData>::iterator &iter);
+  void sendMsg(const vector<VisData>::iterator &iter);
 };
 
 #endif //SUSPENSION_SIM_INCLUDE_SIMULATION_H_
