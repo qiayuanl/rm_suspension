@@ -17,6 +17,7 @@ class FakeSuspe {
   ~FakeSuspe() = default;
   void update(SuspeData &data);
   float torque_out_[4]{};
+ private:
 
 };
 

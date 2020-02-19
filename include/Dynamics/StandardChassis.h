@@ -69,8 +69,6 @@ Chassis<T> buildStandardChassis() {
   chassis._suspeRotorInertia = rotorInertiaY;
   chassis._wheelInertia = wheelInertia;
   chassis._wheelRotorInertia = rotorInertiaY;
-  chassis._rollerInertia = SpatialInertia<T>(0.005, rotorCOM, rotorRotationalInertiaY * 0.01);
-  chassis._rollerRotorInertia = SpatialInertia<T>(0.005, rotorCOM, rotorRotationalInertiaY * 0.01);
 
   chassis._bodyInertia = bodyInertia;
 
