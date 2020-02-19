@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     simulation.clearCollision();
     simulation.resetSimTime();
     selectSimType(&simulation);
-    while (selectSimTime(&simulation) && ros::ok()) {
+    if (selectSimTime(&simulation) && ros::ok()) {
       while (selectPlaySpeed(&simulation) && ros::ok()) {
       }
     }
@@ -41,26 +41,29 @@ void selectSimType(Simulation *sim) {
   robotState.bodyPosition[2] = 0.1;
   sim->addCollisionPlane(0.7, 0, 0.);
   char input;
-  while (true && ros::ok()) { //loop until legal input
+  while (ros::ok()) { //loop until legal input
     printf(" Simulation Type:\n\r");
     printf(" a - Drop from 1.2 meter height\n\r");
     printf(" b - Run down the stairs\n\r");
     printf(" c - Fly the ramp (17 degree)\n\r");
-    printf(" d - Brake in maxium speed\n\r");
+    printf(" d - Brake in maximum speed\n\r");
     printf(" e - Diagonally across the ramp\n\r");
     std::cin >> input;
     double stairs_height = 0.2;
     switch (input) {
-      case 'a':robotState.bodyPosition[2] = 1.2; //Reconfigure z to 1.2 meter
+      case 'a': {
+        robotState.bodyPosition[2] = 1.2; //Reconfigure z to 1.2 meter
+        robotState.bodyOrientation = rpyToQuat(Vec3<double>(0, 0, M_PI_2));
         sim->setSpeed(0.);
         break;
+      }
       case 'b': {
         robotState.bodyPosition[2] = stairs_height + 0.1; //Reconfigure z
         sim->addCollisionBox(0.7, 0., 3., 1., stairs_height, Vec3<double>(0., 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));//turn 0 degree
         sim->setSpeed(3.);
-      }
         break;
+      }
       case 'c': {
         robotState.bodyPosition[2] = stairs_height + 0.1;
         sim->addCollisionBox(0.7, 0., (1. + 1.145) * 2, 1., stairs_height, Vec3<double>(0., 0., stairs_height / 2.),
@@ -70,28 +73,25 @@ void selectSimType(Simulation *sim) {
                              Vec3<double>(1. + 1.145 / 2. + 0.005,
                                           0.,
                                           1.145 * tan(0.094444 * M_PI) / 2. + stairs_height - 0.005),
-                             coordinateRotation<double>(CoordinateAxis::Y, 0.094444 * M_PI)); //turn 17 degree
+                             coordinateRotation<double>(CoordinateAxis::Y, -0.094444 * M_PI)); //turn 17 degree
         sim->addCollisionBox(0.7, 0., 2., 1., stairs_height, Vec3<double>(3.795, 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));
         sim->setSpeed(3.);
-      }
         break;
+      }
       case 'd': {
         robotState.bodyVelocity[3] = 1.;
         sim->setSpeed(0.);
       }
       case 'e': {
-        sim->addCollisionBox(0.7, 0,
-                             1.197323, 1., 0.01,
-                             Vec3<double>(1. + 1.145 / 2. + 0.005,
-                                          0.,
-                                          1.145 * tan(0.094444 * M_PI) / 2. - 0.005),
-                             coordinateRotation<double>(CoordinateAxis::Y, 0.094444 * M_PI)
-                                 * coordinateRotation<double>(CoordinateAxis::Z, M_PI_4));
-        robotState.bodyVelocity[3] = 1.;
+        sim->addCollisionBox(0.7, 0.,
+                             2., 3., 0.1,
+                             Vec3<double>(1.6, .5, 1. * sin(0.072222 * M_PI) - 0.05),
+                             rpyToRotMat(Vec3<double>(0., -0.072222 * M_PI, M_PI_4))//turn 13 degree
+        );
         sim->setSpeed(1.);
-      }
         break;
+      }
       default: {
         printf("\n\r Illegal Input! Check and try again.\n\r");
         continue;
@@ -105,7 +105,7 @@ void selectSimType(Simulation *sim) {
 bool selectSimTime(Simulation *sim) {
 
   char input;
-  while (true && ros::ok()) {
+  while (ros::ok()) {
     printf("\n\r Simulation Time:\n\r");
     printf(" a - 0.5 s\n\r");
     printf(" b - 1.0 s\n\r");

@@ -9,7 +9,8 @@
 template<typename T>
 bool CollisionBox<T>::ContactDetection(const Vec3<T> &cp_pos, T &penetration,
                                        Mat3<T> &cp_frame) {
-  Vec3<T> center2cp_local = _orientation.transpose() * (cp_pos - _position);
+  //Vec3<T> center2cp_local = _orientation.transpose() * (cp_pos - _position);
+  Vec3<T> center2cp_local = _orientation * (cp_pos - _position);
 
   bool inside_box(true);
   T err[3] = {0};

@@ -146,10 +146,10 @@ void Simulation::addCollisionBox(double mu, double resti, double depth,
   marker_.pose.position.y = pos.y();
   marker_.pose.position.z = pos.z();
   Quat<double> quat = rotationMatrixToQuaternion(ori);
-  marker_.pose.orientation.x = quat.x();
-  marker_.pose.orientation.y = quat.y();
-  marker_.pose.orientation.z = quat.z();
-  marker_.pose.orientation.w = quat.w();
+  marker_.pose.orientation.x = quat[1];
+  marker_.pose.orientation.y = quat[2];
+  marker_.pose.orientation.z = quat[3];
+  marker_.pose.orientation.w = quat[0];
 
   // Set the scale of the marker -- 1x1x1 here means 1m on a side
   marker_.scale.x = depth;
@@ -202,11 +202,12 @@ void Simulation::record() {
   /////////////////////////////////record TF Data///////////////////////////////////
   vis_data.tfPos[0] = simulator_->getState().bodyPosition;
   vis_data.tfQuat[0] = simulator_->getState().bodyOrientation;
-  //Note!!!!!!You can't use getOrientation(5) to get the orientation of base
   for (int wheelID = 0; wheelID < 4; ++wheelID) {
-    vis_data.tfQuat[wheelID * 2 + 1] = rotationMatrixToQuaternion(model_.getOrientation(wheelID * 2 + 6));
+    vis_data.tfQuat[wheelID * 2 + 1] =
+        rotationMatrixToQuaternion(model_.getOrientation(wheelID * 2 + 6).transpose()); // note!! need tranpose!!!
     vis_data.tfPos[wheelID * 2 + 1] = model_.getPosition(wheelID * 2 + 6);
-    vis_data.tfQuat[wheelID * 2 + 2] = rotationMatrixToQuaternion(model_.getOrientation(wheelID * 2 + 7));
+    vis_data.tfQuat[wheelID * 2 + 2] =
+        rotationMatrixToQuaternion(model_.getOrientation(wheelID * 2 + 7).transpose());// note!! need tranpose!!!
     vis_data.tfPos[wheelID * 2 + 2] = model_.getPosition(wheelID * 2 + 7);
   }
   //////////////////////////record contact force data///////////////////////////////
@@ -249,7 +250,7 @@ void Simulation::play(double scale) {
   }
 }
 
-void Simulation::sendTf(vector<VisData>::iterator iter) {
+void Simulation::sendTf(const vector<VisData>::iterator &iter) {
   tf::Quaternion quat_tf;
   tf::Transform tf;
   std::string frame;
@@ -289,7 +290,7 @@ void Simulation::sendTf(vector<VisData>::iterator iter) {
   }
 }
 
-void Simulation::sendCP(vector<VisData>::iterator iter) {
+void Simulation::sendCP(const vector<VisData>::iterator &iter) {
   visualization_msgs::Marker marker;
   marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
@@ -301,7 +302,7 @@ void Simulation::sendCP(vector<VisData>::iterator iter) {
   marker.id = 5; //large enough to avoid cover marker create at set up
   marker.type = visualization_msgs::Marker::LINE_LIST;
   marker.action = visualization_msgs::Marker::ADD;
-  marker.lifetime = ros::Duration(0.011);
+  marker.lifetime = ros::Duration(0.1);
 
   auto cpP = iter->cpPos.begin();
   auto cpF = iter->cpForce.begin();
@@ -324,7 +325,7 @@ void Simulation::sendCP(vector<VisData>::iterator iter) {
   }
 }
 
-void Simulation::sendMsg(vector<VisData>::iterator iter) {
+void Simulation::sendMsg(const vector<VisData>::iterator &iter) {
   twistPub_.publish(iter->baseMsg);
   jointPub_.publish(iter->jointData);
 }

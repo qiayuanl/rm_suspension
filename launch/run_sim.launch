@@ -1,7 +1,7 @@
 <launch>
     <param name="robot_description" textfile="$(find third)/urdf/third.urdf"/>
 
-    <rosparam command="load" file="$(find rm_suspension)/config/sim_param.yaml"/>
+    <!--    <rosparam command="load" file="$(find rm_suspension)/config/sim_param.yaml"/>-->
     <node name="rqt_gui"
           pkg="rqt_gui"
           type="rqt_gui"
