@@ -62,26 +62,30 @@ void selectSimType(Simulation *sim) {
         sim->addCollisionBox(0.7, 0., 3., 1., stairs_height, Vec3<double>(0., 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));//turn 0 degree
         sim->setSpeed(3.);
+        robotState.bodyVelocity[3] = 3.; //[3] mean x axis
         break;
       }
       case 'c': {
+        robotState.bodyPosition[0] = -1;
         robotState.bodyPosition[2] = stairs_height + 0.1;
         sim->addCollisionBox(0.7, 0., (1. + 1.145) * 2, 1., stairs_height, Vec3<double>(0., 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));
         sim->addCollisionBox(0.7, 0,
-                             1.197323, 1., 0.01,
-                             Vec3<double>(1. + 1.145 / 2. + 0.005,
+                             1.197323, 1., 0.1,
+                             Vec3<double>(1. + 1.145 / 2. + 0.05,
                                           0.,
-                                          1.145 * tan(0.094444 * M_PI) / 2. + stairs_height - 0.005),
+                                          1.145 * tan(0.094444 * M_PI) / 2. + stairs_height - 0.05),
                              coordinateRotation<double>(CoordinateAxis::Y, -0.094444 * M_PI)); //turn 17 degree
         sim->addCollisionBox(0.7, 0., 2., 1., stairs_height, Vec3<double>(3.795, 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));
-        sim->setSpeed(3.);
+        sim->setSpeed(3.5);
+        robotState.bodyVelocity[3] = 3.5;
         break;
       }
       case 'd': {
-        robotState.bodyVelocity[3] = 1.;
         sim->setSpeed(0.);
+        robotState.bodyVelocity[3] = 3.;
+        break;
       }
       case 'e': {
         sim->addCollisionBox(0.7, 0.,
@@ -90,6 +94,7 @@ void selectSimType(Simulation *sim) {
                              rpyToRotMat(Vec3<double>(0., -0.072222 * M_PI, M_PI_4))//turn 13 degree
         );
         sim->setSpeed(1.);
+        robotState.bodyVelocity[3] = 1.;
         break;
       }
       default: {

@@ -18,14 +18,14 @@ Chassis<T> buildStandardChassis() {
   chassis._bodyHeight = 0.1;
   chassis._suspeLinkLength = 0.2;
   chassis._wheelRadius = 0.075;
-  chassis._wheelGearRatio = 6;
+  chassis._wheelGearRatio = 19;
 
-  chassis._motorTauMax = 3.f;
+  chassis._motorTauMax = .15789f; //rotor
   chassis._batteryV = 24;
-  chassis._motorKT = .05;  // this is flux linkage * pole pairs
-  chassis._motorR = 0.173;
+  chassis._motorKT = .005;  // this is flux linkage * pole pairs
+  chassis._motorR = 0.194;
   chassis._jointDamping = .01;
-  chassis._jointDryFriction = .2;
+  chassis._jointDryFriction = .1;
 
   // rotor inertia if the rotor is oriented so it spins around the z-axis
   Mat3<T> rotorRotationalInertiaZ;
@@ -56,6 +56,7 @@ Chassis<T> buildStandardChassis() {
   SpatialInertia<T> rotorInertiaX(0.055, rotorCOM, rotorRotationalInertiaX);
   SpatialInertia<T> rotorInertiaY(0.055, rotorCOM, rotorRotationalInertiaY);
 
+
 //  Mat3<T> bodyRotationalInertia;
 //  bodyRotationalInertia << 0.066958, 0, 0, 0, 0.087692, 0, 0, 0, 0.078993;
   Vec3<T> bodyCOM(0, 0, 0);
@@ -68,6 +69,9 @@ Chassis<T> buildStandardChassis() {
   chassis._suspeRotorInertia = rotorInertiaY;
   chassis._wheelInertia = wheelInertia;
   chassis._wheelRotorInertia = rotorInertiaY;
+  chassis._rollerInertia = SpatialInertia<T>(0.005, rotorCOM, rotorRotationalInertiaY * 0.01);
+  chassis._rollerRotorInertia = SpatialInertia<T>(0.005, rotorCOM, rotorRotationalInertiaY * 0.01);
+
   chassis._bodyInertia = bodyInertia;
 
   // locations

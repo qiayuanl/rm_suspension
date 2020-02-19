@@ -30,27 +30,24 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
   // loop over 4 legs
   for (int wheelID = 0; wheelID < 4; wheelID++) {
 
-    // Hip Joint
+    // Suspe Joint
     bodyID++;
-    Mat6<T> xtreeHip =
+    Mat6<T> xtreeSuspe =
         createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)),
                      withLegSigns<T>(_suspeLocation, wheelID));
-    Mat6<T> xtreeHipRotor =
+    Mat6<T> xtreeSuspeRotor =
         createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)),
                      withLegSigns<T>(_suspeRotorLocation, wheelID));
     if (sideSign[wheelID] < 0) {
       model.addBody(_suspeInertia.flipAlongAxis(CoordinateAxis::Y),
                     _suspeRotorInertia.flipAlongAxis(CoordinateAxis::Y),
                     6., baseID, JointType::Revolute,
-                    CoordinateAxis::Y, xtreeHip, xtreeHipRotor);
+                    CoordinateAxis::Y, xtreeSuspe, xtreeSuspeRotor);
     } else {
       model.addBody(_suspeInertia, _suspeRotorInertia, 6., baseID,
-                    JointType::Revolute, CoordinateAxis::Y, xtreeHip,
-                    xtreeHipRotor);
+                    JointType::Revolute, CoordinateAxis::Y, xtreeSuspe,
+                    xtreeSuspeRotor);
     }
-
-    //TODO add ground contact point to suspension
-    // model.addGroundContactPoint(bodyID, Vec3<T>(-_suspeLinkLength, 0, 0));
 
     // Wheel Joint
     bodyID++;

@@ -188,7 +188,7 @@ void Simulation::runForTime(double time) {
     if (ros::Time::now().toSec() >= timeOfPrint_) {
       printf("\r[Simulation] Computing... %.3lf%%", currentSimTime_ / time * 100.);
       fflush(stdout); //for console in clion
-      timeOfPrint_ = ros::Time::now().toSec() + 1.;
+      timeOfPrint_ = ros::Time::now().toSec() + .2;
     }
   }
 }
@@ -201,7 +201,7 @@ void Simulation::record() {
   VisData vis_data;
   /////////////////////////////////record TF Data///////////////////////////////////
   vis_data.tfPos[0] = simulator_->getState().bodyPosition;
-  vis_data.tfQuat[0] = simulator_->getState().bodyOrientation;
+  vis_data.tfQuat[0] = rotationMatrixToQuaternion(model_.getOrientation(5).transpose());
   for (int wheelID = 0; wheelID < 4; ++wheelID) {
     vis_data.tfQuat[wheelID * 2 + 1] =
         rotationMatrixToQuaternion(model_.getOrientation(wheelID * 2 + 6).transpose()); // note!! need tranpose!!!
