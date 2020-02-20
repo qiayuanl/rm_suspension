@@ -16,50 +16,64 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
   FloatingBaseModel<T> model;
 
   // we assume the Chassis's body can be modeled as a uniformly distributed box.
-  Vec3<T> bodyDims(_bodyLength, _bodyWidth, _bodyHeight);
-  model.addBase(_bodyInertia);
+  Vec3<T> bodyDims(_params._bodyLength, _params._bodyWidth, _params._bodyHeight);
+  model.addBase(_params._bodyInertia);
   // add contact for the chassis's body
   model.addGroundContactBoxPoints(5, bodyDims);
   const int baseID = 5;
   int bodyID = baseID;
 
-  T sideSign[4] = {-1, 1, 1, -1};
-
+  T ySideSign[4] = {1, -1, -1, 1};
+  T xSideSign[4] = {1, 1, -1, -1};
   Mat3<T> I3 = Mat3<T>::Identity();
 
-  // loop over 4 legs
+  // loop over 4 wheel
   for (int wheelID = 0; wheelID < 4; wheelID++) {
 
     // Suspe Joint
     bodyID++;
     Mat6<T> xtreeSuspe =
         createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)),
-                     withLegSigns<T>(_suspeLocation, wheelID));
+                     withWheelSigns<T>(_params._suspeLocation, wheelID));
     Mat6<T> xtreeSuspeRotor =
         createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)),
-                     withLegSigns<T>(_suspeRotorLocation, wheelID));
-    if (sideSign[wheelID] < 0) {
-      model.addBody(_suspeInertia.flipAlongAxis(CoordinateAxis::Y),
-                    _suspeRotorInertia.flipAlongAxis(CoordinateAxis::Y),
-                    6., baseID, JointType::Revolute,
-                    CoordinateAxis::Y, xtreeSuspe, xtreeSuspeRotor);
+                     withWheelSigns<T>(_params._suspeLocation, wheelID));
+    if (ySideSign[wheelID] < 0.) {
+      if (xSideSign[wheelID] < 0.) {
+        model.addBody(_params._suspeInertia.flipAlongAxis(CoordinateAxis::Y).flipAlongAxis(CoordinateAxis::X),
+                      _params._suspeRotorInertia.flipAlongAxis(CoordinateAxis::Y).flipAlongAxis(CoordinateAxis::X),
+                      1., baseID, JointType::Revolute,
+                      CoordinateAxis::Y, xtreeSuspe, xtreeSuspeRotor);
+      } else {
+        model.addBody(_params._suspeInertia.flipAlongAxis(CoordinateAxis::Y),
+                      _params._suspeRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+                      1., baseID, JointType::Revolute,
+                      CoordinateAxis::Y, xtreeSuspe, xtreeSuspeRotor);
+      }
     } else {
-      model.addBody(_suspeInertia, _suspeRotorInertia, 6., baseID,
-                    JointType::Revolute, CoordinateAxis::Y, xtreeSuspe,
-                    xtreeSuspeRotor);
+      if (xSideSign[wheelID] < 0.) {
+        model.addBody(_params._suspeInertia.flipAlongAxis(CoordinateAxis::X),
+                      _params._suspeRotorInertia.flipAlongAxis(CoordinateAxis::X),
+                      1., baseID, JointType::Revolute,
+                      CoordinateAxis::Y, xtreeSuspe, xtreeSuspeRotor);
+      } else {
+        model.addBody(_params._suspeInertia, _params._suspeRotorInertia, 1., baseID,
+                      JointType::Revolute, CoordinateAxis::Y, xtreeSuspe,
+                      xtreeSuspeRotor);
+      }
     }
 
     // Wheel Joint
     bodyID++;
-    Mat6<T> xtreeKnee = createSXform(I3, withLegSigns<T>(_wheelLocation, wheelID));
-    Mat6<T> xtreeKneeRotor = createSXform(I3, withLegSigns<T>(_wheelRotorLocation, wheelID));
-    if (sideSign[wheelID] < 0) {
-      model.addBody(_wheelInertia.flipAlongAxis(CoordinateAxis::Y),
-                    _wheelRotorInertia.flipAlongAxis(CoordinateAxis::Y),
-                    _wheelGearRatio, bodyID - 1, JointType::Revolute,
+    Mat6<T> xtreeKnee = createSXform(I3, withWheelSigns<T>(_params._wheelLocation, wheelID));
+    Mat6<T> xtreeKneeRotor = createSXform(I3, withWheelSigns<T>(_params._wheelRotorLocation, wheelID));
+    if (ySideSign[wheelID] < 0) {
+      model.addBody(_params._wheelInertia.flipAlongAxis(CoordinateAxis::Y),
+                    _params._wheelRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+                    _params._wheelGearRatio, bodyID - 1, JointType::Revolute,
                     CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
     } else {
-      model.addBody(_wheelInertia, _wheelRotorInertia, _wheelGearRatio, bodyID - 1,
+      model.addBody(_params._wheelInertia, _params._wheelRotorInertia, _params._wheelGearRatio, bodyID - 1,
                     JointType::Revolute, CoordinateAxis::Y, xtreeKnee,
                     xtreeKneeRotor);
     }
@@ -69,9 +83,10 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
       double angle = 2. * M_PI / 16. * i;
       model.addGroundContactPoint
           (bodyID,
-           Vec3<T>(_wheelRadius * sin(angle), 0, _wheelRadius * cos(angle)),
+           Vec3<T>(_params._wheelRadius * sin(angle), 0, _params._wheelRadius * cos(angle)),
            true);
     }
+    //TODO add rfid contact point
   }
 
   Vec3<T> g(0, 0, -9.81);
@@ -84,14 +99,14 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
  * Flip signs of elements of a vector V depending on which leg it belongs to
  */
 template<typename T, typename T2>
-Vec3<T> withLegSigns(const Eigen::MatrixBase<T2> &v, int wheelID) {
+Vec3<T> withWheelSigns(const Eigen::MatrixBase<T2> &v, int wheelID) {
   static_assert(T2::ColsAtCompileTime == 1 && T2::RowsAtCompileTime == 3,
                 "Must have 3x1 matrix");
   switch (wheelID) {
-    case 0:return Vec3<T>(v[0], -v[1], v[2]);
-    case 1:return Vec3<T>(v[0], v[1], v[2]);
-    case 2:return Vec3<T>(-v[0], v[1], v[2]);
-    case 3:return Vec3<T>(-v[0], -v[1], v[2]);
+    case 0:return Vec3<T>(v[0], v[1], v[2]);
+    case 1:return Vec3<T>(v[0], -v[1], v[2]);
+    case 2:return Vec3<T>(-v[0], -v[1], v[2]);
+    case 3:return Vec3<T>(-v[0], v[1], v[2]);
     default:throw std::runtime_error("Invalid wheel id!");
   }
 }
@@ -99,8 +114,8 @@ Vec3<T> withLegSigns(const Eigen::MatrixBase<T2> &v, int wheelID) {
 template<typename T>
 std::vector<ActuatorModel<T>> Chassis<T>::buildActuatorModels() {
   std::vector<ActuatorModel<T>> models;
-  models.emplace_back(_wheelGearRatio, _motorKT, _motorR, _batteryV,
-                      _jointDamping, _jointDryFriction, _motorTauMax);
+  models.emplace_back(_params._wheelGearRatio, _params._motorKT, _params._motorR, _params._batteryV,
+                      _params._jointDamping, _params._jointDryFriction, _params._motorTauMax);
 
   return models;
 }

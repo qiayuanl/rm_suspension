@@ -155,11 +155,6 @@ static inline std::string boolToString(bool b) {
   return std::string(b ? "true" : "false");
 }
 
-void writeStringToFile(const std::string &fileName,
-                       const std::string &fileData);
-std::string getCurrentTimeAndDate();
-std::string getConfigDirectoryPath();
-
 /*!
  * Get the rotation matrix coincide with euler angle
  * Intrisic ZYX rotation

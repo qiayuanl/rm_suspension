@@ -7,13 +7,12 @@
 
 #include "Dynamics/Chassis.h"
 #include "Dynamics/DynamicsSimulator.h"
-#include "Dynamics/StandardChassis.h"
+#include "Utilities/FakeSuspe.h"
+#include "Utilities/Controller.h"
 #include "config.h"
 #include <visualization_msgs/Marker.h>
 #include <tf/transform_broadcaster.h>
 #include <rosbag/bag.h>
-#include <Utilities/FakeSuspe.h>
-#include <Utilities/Controller.h>
 #include <geometry_msgs/Twist.h>
 #include <rm_suspension/JointData.h>
 
@@ -42,7 +41,6 @@ class Simulation {
   void setRobotState(FBModelState<double> &state) {
     simulator_->setState(state);
   }
-  void setUpSuspe(double *q);
   void step(double dt, double dtControl);
   void addCollisionPlane(double mu, double resti, double height,
                          double sizeX = 20, double sizeY = 20);

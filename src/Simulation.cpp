@@ -26,17 +26,15 @@ Simulation::Simulation(ChassisType type)
   printf("[Simulation] Load parameters...\n");
   simParams_.getParam(&nh_);
   fakeSuspe_.setParams(&nh_);
+  chassis_._params.getParam(&nh_);
   // init chassis info
   printf("[Simulation] Build chassis...\n");
-  type_ = type;
-  chassis_ = buildStandardChassis<double>();
   printf("[Simulation] Build actuator model...\n");
   actuatorModels_ = chassis_.buildActuatorModels();
-
   // init rigid body dynamics
   printf("[Simulation] Build rigid body model...\n");
-
   model_ = chassis_.buildModel();
+
   simulator_ =
       new DynamicsSimulator<double>(model_, simParams_.use_spring_damper_);
 
@@ -206,7 +204,7 @@ void Simulation::runForTime(double time) {
 }
 
 void Simulation::setSpeed(double speed) {
-  controller_.setSpeed(speed / chassis_._wheelRadius);
+  controller_.setSpeed(speed / chassis_._params._wheelRadius);
 }
 
 void Simulation::record() {
@@ -227,7 +225,7 @@ void Simulation::record() {
   int count = 0;
   for (size_t i(0); i < _nTotalGC; ++i) {
     Vec3<double> f = simulator_->getContactForce(i);
-    if (f.norm() > 0.1 && f.norm() < 500.) {
+    if (f.norm() > 0.1) {
       vis_data.cpForce.push_back(f);
       vis_data.cpPos.push_back(simulator_->getModel()._pGC[i]);
       count++;
