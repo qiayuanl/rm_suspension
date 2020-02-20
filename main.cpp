@@ -66,8 +66,8 @@ void selectSimType(Simulation *sim) {
                              coordinateRotation<double>(CoordinateAxis::Y, -0.094444 * M_PI)); //turn 17 degree
         sim->addCollisionBox(0.7, 0., 2., 1., stairs_height, Vec3<double>(3.795, 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));
-        sim->setSpeed(4.3);
-        sim->setupState_.bodyVelocity[3] = 4.3;
+        sim->setSpeed(3.0);
+        sim->setupState_.bodyVelocity[3] = 3.0;
         break;
       }
       case 'd': {

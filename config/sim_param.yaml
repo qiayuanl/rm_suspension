@@ -19,7 +19,7 @@ home_rpy: [0.,0.,0.]
 
 spring_length: 0.100
 spring_kp: 5000.
-spring_kd: 1000.
+spring_kd: 200.
 spring_range: 0.030
 spring_preload: 0.
 suspe_length0: 0.05168
@@ -27,7 +27,7 @@ suspe_length1: 0.10233
 suspe_q_offset: -0.32 # Right-handed coordinate
 
 ###############################ChassisParams##########################
-bodyMass: 4.
+bodyMass: 10.
 suspeMass: .66250
 wheelMass: .590
 rotorMass: .055

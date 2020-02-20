@@ -1,6 +1,13 @@
 # rm_suspension
 Rigid body dynamics simulation for suspension design of RoboMaster robots
 
+Simulation type:
+- Drop from 1.2 meter height
+- Run down the stairs
+- Fly the ramp
+- Brake in maximum speed;
+- Diagonally across the ramp
+
 ![sim.png](https://i.loli.net/2020/02/21/QdIfsjzWmKxVB2Z.png)
 
 ## Dependencies:
