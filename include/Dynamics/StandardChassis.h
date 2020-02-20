@@ -12,7 +12,7 @@ Chassis<T> buildStandardChassis() {
   Chassis<T> chassis;
   chassis._chassisType = ChassisType::STANDARD;
 
-  chassis._bodyMass = 12.;
+  chassis._bodyMass = 8.;
   chassis._bodyLength = 0.58;
   chassis._bodyWidth = 0.52;
   chassis._bodyHeight = 0.1;

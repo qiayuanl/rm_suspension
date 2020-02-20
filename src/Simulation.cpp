@@ -25,6 +25,7 @@ Simulation::Simulation(ChassisType type)
   // init parameters
   printf("[Simulation] Load parameters...\n");
   simParams_.getParam(&nh_);
+  fakeSuspe_.setParams(&nh_);
   // init chassis info
   printf("[Simulation] Build chassis...\n");
   type_ = type;
@@ -45,6 +46,16 @@ Simulation::Simulation(ChassisType type)
   }
 
   // set some sane defaults:
+
+  setupState_.q = zero8;
+  setupState_.qd = zero8;
+  setupState_.bodyOrientation = rotationMatrixToQuaternion(
+      ori::coordinateRotation(CoordinateAxis::Z, 0.0));
+  setupState_.q = zero8;
+  setupState_.qd = zero8;
+  for (int wheelID = 0; wheelID < 4; ++wheelID) {
+    setupState_.q[wheelID * 2] = fakeSuspe_.getSetupAngle(wheelID);
+  }
   tau_ = zero8;
   printf("[Simulation] Ready!\n");
 }
@@ -56,6 +67,7 @@ void Simulation::step(double dt, double dtControl) {
     suspeData_.qd_[wheel] = simulator_->getState().qd[wheel * 2];
   }
   fakeSuspe_.update(suspeData_);
+
   for (int wheel = 0; wheel < 4; ++wheel) {
     tau_[wheel * 2] = fakeSuspe_.torque_out_[wheel];
   }
@@ -118,7 +130,7 @@ void Simulation::addCollisionPlane(double mu, double resti, double height,
   marker_.color.r = 1.0f;
   marker_.color.g = 1.0f;
   marker_.color.b = 1.0f;
-  marker_.color.a = 0.5;
+  marker_.color.a = .8f;
   marker_.lifetime = ros::Duration(0);
   markerPub_.publish(marker_);
 }
@@ -159,7 +171,7 @@ void Simulation::addCollisionBox(double mu, double resti, double depth,
   marker_.color.r = 1.0f;
   marker_.color.g = 1.0f;
   marker_.color.b = 1.0f;
-  marker_.color.a = 0.5;
+  marker_.color.a = 1.0;
   marker_.lifetime = ros::Duration(0);
   markerPub_.publish(marker_);
 }
@@ -212,13 +224,16 @@ void Simulation::record() {
   }
   //////////////////////////record contact force data///////////////////////////////
   int _nTotalGC = simulator_->getTotalNumGC();
+  int count = 0;
   for (size_t i(0); i < _nTotalGC; ++i) {
     Vec3<double> f = simulator_->getContactForce(i);
-    if (f.norm() > 0.) {
+    if (f.norm() > 0.1 && f.norm() < 500.) {
       vis_data.cpForce.push_back(f);
       vis_data.cpPos.push_back(simulator_->getModel()._pGC[i]);
+      count++;
     }
   }
+  vis_data.jointData.cp_count = count;
   ///////////////////////////////record base twist and joint data for plot//////////////////////////
   vis_data.baseMsg.linear.x = vis_data.tfPos[0].x();
   vis_data.baseMsg.linear.y = vis_data.tfPos[0].y();
@@ -228,7 +243,7 @@ void Simulation::record() {
   vis_data.baseMsg.angular.y = rpy.y();
   vis_data.baseMsg.angular.z = rpy.z();
   for (int wheelID = 0; wheelID < 4; ++wheelID) {
-    vis_data.jointData.q_suspe[wheelID] = simulator_->getState().q[wheelID * 2];
+    vis_data.jointData.q_suspe[wheelID] = fakeSuspe_.getSpringLength(wheelID);
     vis_data.jointData.qd_suspe[wheelID] = simulator_->getState().qd[wheelID * 2];
     vis_data.jointData.tau_suspe[wheelID] = tau_[wheelID * 2];
     vis_data.jointData.qd_wheel[wheelID] = simulator_->getState().qd[wheelID * 2 + 1];
@@ -243,7 +258,7 @@ void Simulation::play(double scale) {
   ros::Rate loop_rate(simParams_.vis_fps_ / scale);
   while (ros::ok() && iter != visData_.end()) {
     sendTf(iter);
-    sendCP(iter);
+    sendCP(iter, scale);
     sendMsg(iter);
     ++iter;
     loop_rate.sleep();
@@ -290,7 +305,7 @@ void Simulation::sendTf(const vector<VisData>::iterator &iter) {
   }
 }
 
-void Simulation::sendCP(const vector<VisData>::iterator &iter) {
+void Simulation::sendCP(const vector<VisData>::iterator &iter, double scale) {
   visualization_msgs::Marker marker;
   marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
@@ -302,7 +317,7 @@ void Simulation::sendCP(const vector<VisData>::iterator &iter) {
   marker.id = 5; //large enough to avoid cover marker create at set up
   marker.type = visualization_msgs::Marker::LINE_LIST;
   marker.action = visualization_msgs::Marker::ADD;
-  marker.lifetime = ros::Duration(0.1);
+  marker.lifetime = ros::Duration(1. / (simParams_.vis_fps_ / scale));
 
   auto cpP = iter->cpPos.begin();
   auto cpF = iter->cpForce.begin();

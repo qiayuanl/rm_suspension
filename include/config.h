@@ -49,24 +49,24 @@ class SimParameters {
 
 class SuspeParameters {
  public:
-  double spring_joint_length_;
   double spring_length_;
   double spring_kp_;
   double spring_kd_;
   double spring_range_;
   double spring_preload_;
-  double arm_0_length_;
-
+  double suspe_length0_;
+  double suspe_length1_;
+  double suspe_q_offset_;
   void getParam(ros::NodeHandle *nh) {
     XmlRpc::XmlRpcValue param;
-    nh->param<double>("spring_length", spring_length_, 120.);
-    nh->param<double>("spring_kp", spring_kp_, 5.);
-    nh->param<double>("spring_kd", spring_kd_, 120.);
-    nh->param<double>("spring_range", spring_range_, 30.);
+    nh->param<double>("spring_length", spring_length_, 0.100);
+    nh->param<double>("spring_kp", spring_kp_, 5000.);
+    nh->param<double>("spring_kd", spring_kd_, 1000.);
+    nh->param<double>("spring_range", spring_range_, 0.03);
     nh->param<double>("spring_preload", spring_preload_, 0.);
-    nh->param<double>("arm_0_length", arm_0_length_, 120.);
-    nh->param<double>("spring_joint_length", spring_joint_length_, 120.);
-
+    nh->param<double>("suspe_length0", suspe_length0_, 0.05168);
+    nh->param<double>("suspe_length1", suspe_length1_, 0.10233);
+    nh->param<double>("suspe_q_offset", suspe_q_offset_, -0.32);
   };
 };
 

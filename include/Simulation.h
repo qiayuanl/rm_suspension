@@ -42,7 +42,7 @@ class Simulation {
   void setRobotState(FBModelState<double> &state) {
     simulator_->setState(state);
   }
-
+  void setUpSuspe(double *q);
   void step(double dt, double dtControl);
   void addCollisionPlane(double mu, double resti, double height,
                          double sizeX = 20, double sizeY = 20);
@@ -71,6 +71,7 @@ class Simulation {
 
   const FBModelState<double> &getRobotState() { return simulator_->getState(); }
 
+  FBModelState<double> setupState_;
  private:
   ros::NodeHandle nh_;
   ros::Publisher markerPub_;
@@ -100,7 +101,7 @@ class Simulation {
 
   void record();
   void sendTf(const vector<VisData>::iterator &iter);
-  void sendCP(const vector<VisData>::iterator &iter);
+  void sendCP(const vector<VisData>::iterator &iter, double scale);
   void sendMsg(const vector<VisData>::iterator &iter);
 };
 

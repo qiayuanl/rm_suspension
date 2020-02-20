@@ -24,24 +24,13 @@ int main(int argc, char **argv) {
 }
 
 void selectSimType(Simulation *sim) {
-  //perpare init robot state
-  DVec<double> zero8(8);
-  for (u32 i = 0; i < 8; i++) {
-    zero8[i] = 0.;
-  }
-  FBModelState<double> robotState;
-  robotState.q = zero8;
-  robotState.qd = zero8;
-  robotState.bodyOrientation = rotationMatrixToQuaternion(
-      ori::coordinateRotation(CoordinateAxis::Z, 0.0));
-  robotState.bodyPosition.setZero();
-  robotState.bodyVelocity.setZero();
-  robotState.q = zero8;
-  robotState.qd = zero8;
-  robotState.bodyPosition[2] = 0.1;
+  //prepare init robot state
   sim->addCollisionPlane(0.7, 0, 0.);
   char input;
   while (ros::ok()) { //loop until legal input
+    sim->setupState_.bodyPosition.setZero();
+    sim->setupState_.bodyVelocity.setZero();
+    sim->setupState_.bodyPosition[2] = 0.1;
     printf(" Simulation Type:\n\r");
     printf(" a - Drop from 1.2 meter height\n\r");
     printf(" b - Run down the stairs\n\r");
@@ -52,22 +41,21 @@ void selectSimType(Simulation *sim) {
     double stairs_height = 0.2;
     switch (input) {
       case 'a': {
-        robotState.bodyPosition[2] = 1.2; //Reconfigure z to 1.2 meter
-        robotState.bodyOrientation = rpyToQuat(Vec3<double>(0, 0, M_PI_2));
+        sim->setupState_.bodyPosition[2] = 1.2; //Reconfigure z to 1.2 meter
         sim->setSpeed(0.);
         break;
       }
       case 'b': {
-        robotState.bodyPosition[2] = stairs_height + 0.1; //Reconfigure z
+        sim->setupState_.bodyPosition[2] = stairs_height + 0.15; //Reconfigure z
         sim->addCollisionBox(0.7, 0., 3., 1., stairs_height, Vec3<double>(0., 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));//turn 0 degree
         sim->setSpeed(3.);
-        robotState.bodyVelocity[3] = 3.; //[3] mean x axis
+        sim->setupState_.bodyVelocity[3] = 3.; //[3] mean x axis
         break;
       }
       case 'c': {
-        robotState.bodyPosition[0] = -1;
-        robotState.bodyPosition[2] = stairs_height + 0.1;
+        sim->setupState_.bodyPosition[0] = -1;
+        sim->setupState_.bodyPosition[2] = stairs_height + 0.15;
         sim->addCollisionBox(0.7, 0., (1. + 1.145) * 2, 1., stairs_height, Vec3<double>(0., 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));
         sim->addCollisionBox(0.7, 0,
@@ -79,12 +67,12 @@ void selectSimType(Simulation *sim) {
         sim->addCollisionBox(0.7, 0., 2., 1., stairs_height, Vec3<double>(3.795, 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));
         sim->setSpeed(3.5);
-        robotState.bodyVelocity[3] = 3.5;
+        sim->setupState_.bodyVelocity[3] = 3.5;
         break;
       }
       case 'd': {
         sim->setSpeed(0.);
-        robotState.bodyVelocity[3] = 3.;
+        sim->setupState_.bodyVelocity[3] = 3.;
         break;
       }
       case 'e': {
@@ -94,7 +82,7 @@ void selectSimType(Simulation *sim) {
                              rpyToRotMat(Vec3<double>(0., -0.072222 * M_PI, M_PI_4))//turn 13 degree
         );
         sim->setSpeed(1.);
-        robotState.bodyVelocity[3] = 1.;
+        sim->setupState_.bodyVelocity[3] = 1.;
         break;
       }
       default: {
@@ -104,7 +92,7 @@ void selectSimType(Simulation *sim) {
     }
     break; //get out on loop
   }
-  sim->setRobotState(robotState);
+  sim->setRobotState(sim->setupState_);
 }
 
 bool selectSimTime(Simulation *sim) {

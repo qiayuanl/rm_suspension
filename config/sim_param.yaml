@@ -1,5 +1,5 @@
 ################################SimParams###########################
-dynamics_dt: 0.001
+dynamics_dt: 0.00001
 control_dt: 0.001
 floor_kp: 5000
 floor_kd: 500000
@@ -13,11 +13,14 @@ go_home: false
 home_pos: [0.,0.,.5]
 home_rpy: [0.,0.,0.]
 
-  ###############################SuspeParams##########################
-  spring_joint_pos: [];
-  double spring_length_;
-  double spring_kp_;
-  double spring_kd_;
-  double spring_range_;
-  double spring_preload_;
-  double arm_0_length_;
+###############################SuspeParams##########################
+#Note: all params should be defined at frame on suspension/wheel 0
+
+spring_length: 0.120
+spring_kp: 5.
+spring_kd: 1.
+spring_range: 0.030
+spring_preload: 0.
+suspe_length0: 0.05168
+suspe_length1: 0.10233
+suspe_q_offset: -0.523598 # Right-handed coordinate
