@@ -61,7 +61,7 @@ class SuspeParameters {
     XmlRpc::XmlRpcValue param;
     nh->param<double>("spring_length", spring_length_, 0.100);
     nh->param<double>("spring_kp", spring_kp_, 5000.);
-    nh->param<double>("spring_kd", spring_kd_, 1000.);
+    nh->param<double>("spring_kd", spring_kd_, 200.);
     nh->param<double>("spring_range", spring_range_, 0.03);
     nh->param<double>("spring_preload", spring_preload_, 0.);
     nh->param<double>("suspe_length0", suspe_length0_, 0.05168);

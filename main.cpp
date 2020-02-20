@@ -30,7 +30,7 @@ void selectSimType(Simulation *sim) {
   while (ros::ok()) { //loop until legal input
     sim->setupState_.bodyPosition.setZero();
     sim->setupState_.bodyVelocity.setZero();
-    sim->setupState_.bodyPosition[2] = 0.1;
+    sim->setupState_.bodyPosition[2] = 0.15;
     printf(" Simulation Type:\n\r");
     printf(" a - Drop from 1.2 meter height\n\r");
     printf(" b - Run down the stairs\n\r");
