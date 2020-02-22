@@ -35,8 +35,9 @@ void selectSimType(Simulation *sim) {
     printf(" a - Drop from 1.2 meter height\n\r");
     printf(" b - Run down the stairs\n\r");
     printf(" c - Fly the ramp (17 degree)\n\r");
-    printf(" d - Brake in maximum speed\n\r");
-    printf(" e - Diagonally across the ramp\n\r");
+    printf(" d - Brake in maximum X speed\n\r");
+    printf(" e - Brake in maximum Y speed\n\r");
+    printf(" f - Diagonally across the ramp\n\r");
     std::cin >> input;
     double stairs_height = 0.2;
     switch (input) {
@@ -76,6 +77,11 @@ void selectSimType(Simulation *sim) {
         break;
       }
       case 'e': {
+        sim->setSpeed(0.);
+        sim->setupState_.bodyVelocity[4] = 3.;
+        break;
+      }
+      case 'f': {
         sim->addCollisionBox(0.7, 0.,
                              2., 3., 0.1,
                              Vec3<double>(1.6, .5, 1. * sin(0.072222 * M_PI) - 0.05),
