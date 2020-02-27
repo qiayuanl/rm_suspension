@@ -43,7 +43,7 @@ void FakeSuspe::update(SuspeData &data) {
       springForce = 50000. * (delta_length - params.spring_range_ + 0.01)
           - 100000. * (0 - springVel); //plus 0.001 to avoid stack on critical point
     } else {
-      springForce = params.spring_kp_ * delta_length - params.spring_kd_ * (0 - springVel);
+      springForce = params.spring_kp_ * delta_length - params.spring_kd_ * (0 - springVel) + params.spring_preload_;
     }
     double sinTheta = sin(suspeAngle) / springLength_[wheelID] * params.suspe_length0_;//law of sines
     torque_out_[wheelID] = -springForce * params.suspe_length1_ * sinTheta;

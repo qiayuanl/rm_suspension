@@ -84,7 +84,6 @@ class ChassisParameters {
   T _bodyLength;
   T _bodyWidth;
   T _bodyHeight;
-  T _suspeLinkLength;
   T _wheelRadius;
   T _wheelGearRatio;
 
@@ -109,7 +108,6 @@ class ChassisParameters {
     nh->param<T>("bodyLength", _bodyLength, .58);
     nh->param<T>("bodyWidth", _bodyWidth, .52);
     nh->param<T>("bodyHeight", _bodyHeight, 0.015);
-    nh->param<T>("suspeLinkLength", _suspeLinkLength, 0.05168);
     nh->param<T>("wheelRadius", _wheelRadius, 0.10233);
     nh->param<T>("wheelGearRatio", _wheelGearRatio, 19.);
 
