@@ -1,6 +1,6 @@
 ################################SimParams###########################
 dynamics_dt: 0.00001
-control_dt: 0.0001
+control_dt: 0.001
 floor_kp: 5000
 floor_kd: 500000
 home_kp_lin: 2500

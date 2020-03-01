@@ -2,7 +2,7 @@
 Rigid body dynamics simulation for suspension design of RoboMaster robots
 
 Simulation type:
-- Drop from 1.2 meter height
+- Drop from 0.5 meter height
 - Run down the stairs
 - Fly the ramp
 - Brake in maximum speed;

@@ -32,7 +32,7 @@ void selectSimType(Simulation *sim) {
     sim->setupState_.bodyVelocity.setZero();
     sim->setupState_.bodyPosition[2] = 0.15;
     printf(" Simulation Type:\n\r");
-    printf(" a - Drop from 1.2 meter height\n\r");
+    printf(" a - Drop from 0.5 meter height\n\r");
     printf(" b - Run down the stairs\n\r");
     printf(" c - Fly the ramp (17 degree)\n\r");
     printf(" d - Brake in maximum X speed\n\r");
@@ -42,7 +42,7 @@ void selectSimType(Simulation *sim) {
     double stairs_height = 0.2;
     switch (input) {
       case 'a': {
-        sim->setupState_.bodyPosition[2] = 1.2; //Reconfigure z to 1.2 meter
+        sim->setupState_.bodyPosition[2] = 0.5; //Reconfigure z to 0.5 meter
         sim->setSpeed(0.);
         break;
       }
