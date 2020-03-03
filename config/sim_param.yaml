@@ -27,14 +27,14 @@ suspe_length1: 0.10233
 suspe_q_offset: -0.32 # Right-handed coordinate
 
 ###############################ChassisParams##########################
-bodyMass: 10.
+bodyMass: 9.54
 suspeMass: .66250
 wheelMass: .590
 rotorMass: .055
 
 bodyLength: 0.58
 bodyWidth: 0.52
-bodyHeight: 0.1
+bodyHeight: 0.015
 suspeLinkLength: 0.2
 wheelRadius: 0.075
 wheelGearRatio: 19
@@ -47,9 +47,9 @@ jointDamping: .01
 jointDryFriction: .1
 
 #floating point value in table should define with decimal point (0 -> 0.)
-bodyRotationalInertia: [0.08376653, 0., 0.,
-                        0., 0.10663120, 0.,
-                        0., 0., 0.17595299]
+bodyRotationalInertia: [0.33719628, -0.00060248, 0.00786316,
+                        0.00060248, 0.29402280, -0.02628580,
+                        0.00786316, 0.02628580, 0.22778442]
 
 suspeRotationalInertia: [0.00079435, 0.00002251, 0.00019765,
                          0.00002251, 0.00105859, 0.00001161,
@@ -63,12 +63,12 @@ rotorRotationalInertiaZ: [.000013, 0., 0.,
                           0., .000013, 0.,
                           0., 0., .000023]
 
-suspeLocation: [0.083, -0.172,-0.025]
-wheelLocation: [-0.11135,0.0324,0.]
-wheelRotorLocation: [-0.11135,-0.0354,0.]
+suspeLocation: [0.083, -0.17, 0.0075]
+wheelLocation: [-0.1118, 0.0514, 0.]
+wheelRotorLocation: [-0.1118, 0.0314,0.]
 rfidPosLocation: [0,0,-0.0089]
 
-bodyCOM: [0.,0.,0.00779]
+bodyCOM: [-0.00246,0.001443,0.081706]
 suspeCOM: [-0.094554, -0.02185, 0.00938]
 wheelCOM: [0.,-0.0169,0.]
 
