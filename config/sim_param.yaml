@@ -1,8 +1,6 @@
 ################################SimParams###########################
 dynamics_dt: 0.00001
 control_dt: 0.001
-floor_kp: 5000
-floor_kd: 500000
 home_kp_lin: 2500
 home_kd_lin: 300
 home_kp_ang: 250
@@ -18,16 +16,16 @@ home_rpy: [0.,0.,0.]
 #Note: all params should be defined at frame on suspension/wheel 0
 
 spring_length: 0.100
-spring_kp: 5000.
+spring_kp: 2000.
 spring_kd: 200.
 spring_range: 0.030
-spring_preload: 0.
+spring_preload: 60.
 suspe_length0: 0.05168
 suspe_length1: 0.10233
 suspe_q_offset: -0.32 # Right-handed coordinate
 
 ###############################ChassisParams##########################
-bodyMass: 9.54
+bodyMass: 9.57870388
 suspeMass: .66250
 wheelMass: .590
 rotorMass: .055
@@ -47,9 +45,9 @@ jointDamping: .01
 jointDryFriction: .1
 
 #floating point value in table should define with decimal point (0 -> 0.)
-bodyRotationalInertia: [0.33719628, -0.00060248, 0.00786316,
-                        0.00060248, 0.29402280, -0.02628580,
-                        0.00786316, 0.02628580, 0.22778442]
+bodyRotationalInertia: [0.31567458, 0.00722115, -0.02433380,
+                        0.00722115, 0.39576078, -0.00016130,
+                        -0.02433380, -0.00016130, 0.26503824]
 
 suspeRotationalInertia: [0.00079435, 0.00002251, 0.00019765,
                          0.00002251, 0.00105859, 0.00001161,
@@ -68,7 +66,7 @@ wheelLocation: [-0.1118, 0.0514, 0.]
 wheelRotorLocation: [-0.1118, 0.0314,0.]
 rfidPosLocation: [0,0,-0.0089]
 
-bodyCOM: [-0.00246,0.001443,0.081706]
+bodyCOM: [-0.02921913,-0.00063774,0.10989947]
 suspeCOM: [-0.094554, -0.02185, 0.00938]
 wheelCOM: [0.,-0.0169,0.]
 
