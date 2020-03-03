@@ -19,11 +19,11 @@ spring_length: 0.100
 spring_kp: 2000.
 spring_kd: 200.
 spring_range: 0.030
-spring_preload: 60.
 suspe_length0: 0.05168
 suspe_length1: 0.10233
 suspe_q_offset: -0.32 # Right-handed coordinate
 
+spring_preload: [30.,30.,50.,50.]
 ###############################ChassisParams##########################
 bodyMass: 9.57870388
 suspeMass: .66250
