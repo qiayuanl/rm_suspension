@@ -5,6 +5,7 @@
 void selectSimType(Simulation *sim);
 bool selectSimTime(Simulation *sim);
 bool selectPlaySpeed(Simulation *sim);
+bool selectFlyRampSpeed(Simulation *sim);
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "sim");
@@ -67,8 +68,10 @@ void selectSimType(Simulation *sim) {
                              coordinateRotation<double>(CoordinateAxis::Y, -0.094444 * M_PI)); //turn 17 degree
         sim->addCollisionBox(0.7, 0., 2., 1., stairs_height, Vec3<double>(3.795, 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));
-        sim->setSpeed(3.0);
-        sim->setupState_.bodyVelocity[3] = 3.0;
+        if (selectFlyRampSpeed(sim)&&ros::ok()) {
+          sim->setSpeed(sim->getFlyRampSpeed());
+          sim->setupState_.bodyVelocity[3] = 3.0;
+        }
         break;
       }
       case 'd': {
@@ -153,6 +156,37 @@ bool selectPlaySpeed(Simulation *sim) {
     case 'q':return false;
     default:printf("\n\r Illegal Input! Check and try again.\n\r");
       break;
+  }
+  return true;
+}
+
+bool selectFlyRampSpeed(Simulation *sim) {
+  char input;
+  printf("\n\rFly speed: \n\r");
+  printf(" a - 1.0\n\r");
+  printf(" b - 1.5\n\r");
+  printf(" c - 2.0\n\r");
+  printf(" d - 2.5\n\r");
+  printf(" e - 3.0 \n\r");
+  std::cin >> input;
+  while (ros::ok()) {
+    switch (input) {
+      case 'a' : sim->setFlyRampSpeed(1.0);
+        break;
+      case 'b' : sim->setFlyRampSpeed(1.5);
+        break;
+      case 'c' : sim->setFlyRampSpeed(2.0);
+        break;
+      case 'd' : sim->setFlyRampSpeed(2.5);
+        break;
+      case 'e' : sim->setFlyRampSpeed(3.0);
+        break;
+      default: {
+        printf("\n\rIllegal Input! Check and try again.\n\r");
+        continue;
+      }
+    }
+    break;
   }
   return true;
 }

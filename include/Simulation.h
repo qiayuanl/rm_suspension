@@ -66,7 +66,8 @@ class Simulation {
   ~Simulation() {
     delete simulator_;
   }
-
+  inline void setFlyRampSpeed(double speed) { flyRampSpeed_ = speed;}
+  inline double getFlyRampSpeed() { return flyRampSpeed_;}
   const FBModelState<double> &getRobotState() { return simulator_->getState(); }
 
   FBModelState<double> setupState_;
@@ -96,6 +97,7 @@ class Simulation {
   double timeOfNextLControl_{};
   double timeOfRecord_{};
   double timeOfPrint_{};
+  double flyRampSpeed_{};
 
   void record();
   void sendTf(const vector<VisData>::iterator &iter);
