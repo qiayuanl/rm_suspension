@@ -56,20 +56,26 @@ class SuspeParameters {
   double spring_kp_;
   double spring_kd_;
   double spring_range_;
-  double spring_preload_;
   double suspe_length0_;
   double suspe_length1_;
   double suspe_q_offset_;
+
+  double spring_preload_[4];
+
   void getParam(ros::NodeHandle *nh) {
     XmlRpc::XmlRpcValue param;
     nh->param<double>("spring_length", spring_length_, 0.100);
     nh->param<double>("spring_kp", spring_kp_, 5000.);
     nh->param<double>("spring_kd", spring_kd_, 200.);
     nh->param<double>("spring_range", spring_range_, 0.03);
-    nh->param<double>("spring_preload", spring_preload_, 0.);
     nh->param<double>("suspe_length0", suspe_length0_, 0.05168);
     nh->param<double>("suspe_length1", suspe_length1_, 0.10233);
     nh->param<double>("suspe_q_offset", suspe_q_offset_, -0.32);
+
+    if (nh->getParam("spring_preload", param))
+      for (int wheelID = 0; wheelID < 4; ++wheelID)
+        spring_preload_[wheelID] = param[wheelID];
+
   };
 };
 
@@ -84,7 +90,6 @@ class ChassisParameters {
   T _bodyLength;
   T _bodyWidth;
   T _bodyHeight;
-  T _suspeLinkLength;
   T _wheelRadius;
   T _wheelGearRatio;
 
@@ -109,7 +114,6 @@ class ChassisParameters {
     nh->param<T>("bodyLength", _bodyLength, .58);
     nh->param<T>("bodyWidth", _bodyWidth, .52);
     nh->param<T>("bodyHeight", _bodyHeight, 0.015);
-    nh->param<T>("suspeLinkLength", _suspeLinkLength, 0.05168);
     nh->param<T>("wheelRadius", _wheelRadius, 0.10233);
     nh->param<T>("wheelGearRatio", _wheelGearRatio, 19.);
 
