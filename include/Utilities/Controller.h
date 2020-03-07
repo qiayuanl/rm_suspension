@@ -10,7 +10,7 @@ class Controller {
   Controller() = default;
   ~Controller() = default;
   void setSpeed(double speed);
-  void update(double *qd, double cTime);
+  void update(const double *qd);
  private:
   double qd_des_{};
 };

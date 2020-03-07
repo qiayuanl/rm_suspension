@@ -7,7 +7,7 @@
  * Initialize the simulator here.  It is _not_ okay to block here waiting for
  * the robot to connect. Use firstRun() instead!
  */
-Simulation::Simulation(ChassisType type)
+Simulation::Simulation()
     : tau_(8) {
   // init ROS
   printf("[Simulation] Init ROS...\n");
@@ -76,10 +76,11 @@ void Simulation::step(double dt, double dtControl) {
                     simulator_->getState().qd[3],
                     simulator_->getState().qd[5],
                     simulator_->getState().qd[7]};
-    controller_.update(qd, currentSimTime_);
+    controller_.update(qd);
     timeOfNextLControl_ = timeOfNextLControl_ + dtControl;
   }
-  // actuator model: only for wheel acautor
+
+  // actuator model: only for wheel actuator
   for (int wheelID = 0; wheelID < 4; wheelID++) {
     tau_[wheelID * 2 + 1] = actuatorModels_[0].getTorque(
         controller_.torque_out_[wheelID],
@@ -225,11 +226,9 @@ void Simulation::record() {
   int count = 0;
   for (size_t i(0); i < _nTotalGC; ++i) {
     Vec3<double> f = simulator_->getContactForce(i);
-    if (f.norm() > 0.1) {
-      vis_data.cpForce.push_back(f);
-      vis_data.cpPos.push_back(simulator_->getModel()._pGC[i]);
-      count++;
-    }
+    vis_data.cpForce.push_back(f);
+    vis_data.cpPos.push_back(simulator_->getModel()._pGC[i]);
+    count++;
   }
   vis_data.jointData.cp_count = count;
   ///////////////////////////////record base twist and joint data for plot//////////////////////////

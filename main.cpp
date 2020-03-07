@@ -9,7 +9,7 @@ bool selectFlyRampSpeed(Simulation *sim);
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "sim");
-  Simulation simulation(ChassisType::STANDARD);
+  Simulation simulation;
   printf("\n\r\n\r RM Suspension Simulation\n\r");
   printf("\n\r Author: Qiayuan Liao(liaoqiayuan@gmail.com)\n\r\n\r");
 
@@ -35,10 +35,11 @@ void selectSimType(Simulation *sim) {
     printf(" Simulation Type:\n\r");
     printf(" a - Drop from 0.5 meter height\n\r");
     printf(" b - Run down the stairs\n\r");
-    printf(" c - Fly the ramp (17 degree)\n\r");
-    printf(" d - Brake in maximum X speed\n\r");
-    printf(" e - Brake in maximum Y speed\n\r");
-    printf(" f - Diagonally across the ramp\n\r");
+    printf(" c - Brake in maximum X speed\n\r");
+    printf(" d - Brake in maximum Y speed\n\r");
+    printf(" e - Diagonally across the ramp\n\r");
+    printf(" f - Fly the ramp\n\r");
+
     std::cin >> input;
     double stairs_height = 0.2;
     switch (input) {
@@ -56,7 +57,26 @@ void selectSimType(Simulation *sim) {
         break;
       }
       case 'c': {
-        sim->setupState_.bodyPosition[0] = -1;
+        sim->setSpeed(0.);
+        sim->setupState_.bodyVelocity[3] = 3.;
+        break;
+      }
+      case 'd': {
+        sim->setSpeed(0.);
+        sim->setupState_.bodyVelocity[4] = 3.;
+        break;
+      }
+      case 'e': {
+        sim->addCollisionBox(0.7, 0.,
+                             2., 3., 0.1,
+                             Vec3<double>(1.6, .5, 1. * sin(0.072222 * M_PI) - 0.05),
+                             rpyToRotMat(Vec3<double>(0., -0.072222 * M_PI, M_PI_4))//turn 13 degree
+        );
+        sim->setSpeed(1.);
+        sim->setupState_.bodyVelocity[3] = 1.;
+        break;
+      }
+      case 'f': {
         sim->setupState_.bodyPosition[2] = stairs_height + 0.15;
         sim->addCollisionBox(0.7, 0., (1. + 1.145) * 2, 1., stairs_height, Vec3<double>(0., 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));
@@ -68,32 +88,13 @@ void selectSimType(Simulation *sim) {
                              coordinateRotation<double>(CoordinateAxis::Y, -0.094444 * M_PI)); //turn 17 degree
         sim->addCollisionBox(0.7, 0., 2., 1., stairs_height, Vec3<double>(3.795, 0., stairs_height / 2.),
                              coordinateRotation<double>(CoordinateAxis::Z, 0.));
-        if (selectFlyRampSpeed(sim)&&ros::ok()) {
+        if (selectFlyRampSpeed(sim) && ros::ok()) {
           sim->setSpeed(sim->getFlyRampSpeed());
-          sim->setupState_.bodyVelocity[3] = 3.0;
+          sim->setupState_.bodyVelocity[3] = sim->getFlyRampSpeed();
         }
         break;
       }
-      case 'd': {
-        sim->setSpeed(0.);
-        sim->setupState_.bodyVelocity[3] = 3.;
-        break;
-      }
-      case 'e': {
-        sim->setSpeed(0.);
-        sim->setupState_.bodyVelocity[4] = 3.;
-        break;
-      }
-      case 'f': {
-        sim->addCollisionBox(0.7, 0.,
-                             2., 3., 0.1,
-                             Vec3<double>(1.6, .5, 1. * sin(0.072222 * M_PI) - 0.05),
-                             rpyToRotMat(Vec3<double>(0., -0.072222 * M_PI, M_PI_4))//turn 13 degree
-        );
-        sim->setSpeed(1.);
-        sim->setupState_.bodyVelocity[3] = 1.;
-        break;
-      }
+
       default: {
         printf("\n\r Illegal Input! Check and try again.\n\r");
         continue;
@@ -163,23 +164,24 @@ bool selectPlaySpeed(Simulation *sim) {
 bool selectFlyRampSpeed(Simulation *sim) {
   char input;
   printf("\n\rFly speed: \n\r");
-  printf(" a - 1.0\n\r");
-  printf(" b - 1.5\n\r");
-  printf(" c - 2.0\n\r");
-  printf(" d - 2.5\n\r");
-  printf(" e - 3.0 \n\r");
+  printf(" a - 2.5\n\r");
+  printf(" b - 2.8\n\r");
+  printf(" c - 3.0\n\r");
+  printf(" d - 3.4\n\r");
+  printf(" e - 3.8\n\r");
+
   std::cin >> input;
   while (ros::ok()) {
     switch (input) {
-      case 'a' : sim->setFlyRampSpeed(1.0);
+      case 'a' : sim->setFlyRampSpeed(2.5);
         break;
-      case 'b' : sim->setFlyRampSpeed(1.5);
+      case 'b' : sim->setFlyRampSpeed(2.8);
         break;
-      case 'c' : sim->setFlyRampSpeed(2.0);
+      case 'c' : sim->setFlyRampSpeed(3.0);
         break;
-      case 'd' : sim->setFlyRampSpeed(2.5);
+      case 'd' : sim->setFlyRampSpeed(3.4);
         break;
-      case 'e' : sim->setFlyRampSpeed(3.0);
+      case 'e' : sim->setFlyRampSpeed(3.8);
         break;
       default: {
         printf("\n\rIllegal Input! Check and try again.\n\r");
