@@ -7,7 +7,7 @@
  * Initialize the simulator here.  It is _not_ okay to block here waiting for
  * the robot to connect. Use firstRun() instead!
  */
-Simulation::Simulation(ChassisType type)
+Simulation::Simulation()
     : tau_(8) {
   // init ROS
   printf("[Simulation] Init ROS...\n");
@@ -20,7 +20,7 @@ Simulation::Simulation(ChassisType type)
     sleep(1);
   }
   twistPub_ = nh_.advertise<geometry_msgs::Twist>("base_twist", 100);
-  jointPub_ = nh_.advertise<rm_suspension::JointData>("joint_data", 100);
+  suspePub_ = nh_.advertise<rm_suspension::SuspeData>("suspe_data", 100);
 
   // init parameters
   printf("[Simulation] Load parameters...\n");
@@ -76,10 +76,11 @@ void Simulation::step(double dt, double dtControl) {
                     simulator_->getState().qd[3],
                     simulator_->getState().qd[5],
                     simulator_->getState().qd[7]};
-    controller_.update(qd, currentSimTime_);
+    controller_.update(qd);
     timeOfNextLControl_ = timeOfNextLControl_ + dtControl;
   }
-  // actuator model: only for wheel acautor
+
+  // actuator model: only for wheel actuator
   for (int wheelID = 0; wheelID < 4; wheelID++) {
     tau_[wheelID * 2 + 1] = actuatorModels_[0].getTorque(
         controller_.torque_out_[wheelID],
@@ -223,16 +224,18 @@ void Simulation::record() {
   //////////////////////////record contact force data///////////////////////////////
   int _nTotalGC = simulator_->getTotalNumGC();
   int count = 0;
-  for (size_t i(0); i < _nTotalGC; ++i) {
+  for (int i = 0; i < _nTotalGC; ++i) {
     Vec3<double> f = simulator_->getContactForce(i);
-    if (f.norm() > 0.1) {
+    if (f.norm() > .0001 && f.norm() < 1000.) {
       vis_data.cpForce.push_back(f);
       vis_data.cpPos.push_back(simulator_->getModel()._pGC[i]);
       count++;
+      if (count < 4) {
+        vis_data.suspeData.cp_force[count] = f.norm();
+      }
     }
   }
-  vis_data.jointData.cp_count = count;
-  ///////////////////////////////record base twist and joint data for plot//////////////////////////
+  ///////////////////////////////record base twist and suspe data for plot//////////////////////////
   vis_data.baseMsg.linear.x = vis_data.tfPos[0].x();
   vis_data.baseMsg.linear.y = vis_data.tfPos[0].y();
   vis_data.baseMsg.linear.z = vis_data.tfPos[0].z();
@@ -241,10 +244,9 @@ void Simulation::record() {
   vis_data.baseMsg.angular.y = rpy.y();
   vis_data.baseMsg.angular.z = rpy.z();
   for (int wheelID = 0; wheelID < 4; ++wheelID) {
-    vis_data.jointData.q_suspe[wheelID] = fakeSuspe_.getSpringLength(wheelID);
-    vis_data.jointData.qd_suspe[wheelID] = simulator_->getState().qd[wheelID * 2];
-    vis_data.jointData.tau_suspe[wheelID] = tau_[wheelID * 2];
-    vis_data.jointData.qd_wheel[wheelID] = simulator_->getState().qd[wheelID * 2 + 1];
+    vis_data.suspeData.spring_length[wheelID] = fakeSuspe_.getSpringLength(wheelID);
+    vis_data.suspeData.tau_suspe[wheelID] = tau_[wheelID * 2];
+    vis_data.suspeData.qd_wheel[wheelID] = simulator_->getState().qd[wheelID * 2 + 1];
   }
 
   visData_.push_back(vis_data);
@@ -311,6 +313,7 @@ void Simulation::sendCP(const vector<VisData>::iterator &iter, double scale) {
   marker.color.a = 1.0; // Don't forget to set the alpha!
   marker.color.g = 1.0;
   marker.scale.x = .01;
+
   marker.pose.orientation.w = 1;
   marker.id = 5; //large enough to avoid cover marker create at set up
   marker.type = visualization_msgs::Marker::LINE_LIST;
@@ -340,7 +343,7 @@ void Simulation::sendCP(const vector<VisData>::iterator &iter, double scale) {
 
 void Simulation::sendMsg(const vector<VisData>::iterator &iter) {
   twistPub_.publish(iter->baseMsg);
-  jointPub_.publish(iter->jointData);
+  suspePub_.publish(iter->suspeData);
 }
 void Simulation::clearCollision() {
   visualization_msgs::Marker marker;

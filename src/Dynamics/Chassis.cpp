@@ -84,7 +84,7 @@ FloatingBaseModel<T> Chassis<T>::buildModel() {
       model.addGroundContactPoint
           (bodyID,
            Vec3<T>(_params._wheelRadius * sin(angle), 0, _params._wheelRadius * cos(angle)),
-           true);
+           false);
     }
     //TODO add rfid contact point
   }

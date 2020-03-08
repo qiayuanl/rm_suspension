@@ -14,7 +14,7 @@
 #include <tf/transform_broadcaster.h>
 #include <rosbag/bag.h>
 #include <geometry_msgs/Twist.h>
-#include <rm_suspension/JointData.h>
+#include <rm_suspension/SuspeData.h>
 
 struct VisData {
   Quat<double> tfQuat[9];
@@ -22,7 +22,7 @@ struct VisData {
   vector<Vec3<double >> cpPos;
   vector<Vec3<double>> cpForce;
   geometry_msgs::Twist baseMsg;
-  rm_suspension::JointData jointData;
+  rm_suspension::SuspeData suspeData;
 };
 
 /*!
@@ -33,7 +33,7 @@ struct VisData {
 class Simulation {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  explicit Simulation(ChassisType tpye);
+  explicit Simulation();
 
   /*!
    * Explicitly set the state of the robot
@@ -66,16 +66,15 @@ class Simulation {
   ~Simulation() {
     delete simulator_;
   }
-  inline void setFlyRampSpeed(double speed) { flyRampSpeed_ = speed;}
-  inline double getFlyRampSpeed() { return flyRampSpeed_;}
-  const FBModelState<double> &getRobotState() { return simulator_->getState(); }
+  inline void setFlyRampSpeed(double speed) { flyRampSpeed_ = speed; }
+  inline double getFlyRampSpeed() { return flyRampSpeed_; }
 
   FBModelState<double> setupState_;
  private:
   ros::NodeHandle nh_;
   ros::Publisher markerPub_;
   ros::Publisher twistPub_;
-  ros::Publisher jointPub_;
+  ros::Publisher suspePub_;
   visualization_msgs::Marker marker_;
   tf::TransformBroadcaster br_;
 
@@ -85,7 +84,6 @@ class Simulation {
   DynamicsSimulator<double> *simulator_ = nullptr;
   std::vector<ActuatorModel<double>> actuatorModels_;
   SimParameters simParams_;
-  ChassisType type_;
 
   FakeSuspe fakeSuspe_;
   SuspeData suspeData_{};
