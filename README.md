@@ -1,4 +1,4 @@
-# RM_Suspension User-Guidance
+# rm_suspension
 
 Rigid body dynamics simulation for suspension design of RoboMaster robots
 
@@ -10,9 +10,11 @@ Simulation type:
 - Brake in maximum speed;
 - Diagonally across the ramp
 
-## Dependencies:
+Dependencies:
 - Eigen 
 - ROS (for visualization and params loading)
+
+![8O6ePg.gif](https://s1.ax1x.com/2020/03/25/8O6ePg.gif)
 
 # Getting started 
 
@@ -101,3 +103,119 @@ NOTE:
 
 ## URDF
 Previously mentioned, the URDF(rm_description) only for visualization. Because I can't find how to output the inertia of the rigid body correctly, and I am too lazy to write a URDF parser. You can use the [solidworks plugin](http://wiki.ros.org/sw_urdf_exporter) to export the URDF file of your robot. 
+
+
+
+# rm_suspension 中文版README
+
+这是一个RoboMaster机器人悬挂设计的刚体动力学仿真器
+
+仿真类型：
+
+- 从0.5米高跌落
+- 冲下阶梯
+- 飞坡
+- 最大速度制动
+- 斜穿过坡道
+
+依赖:
+
+- Eigen
+- ROS (用于可视化和参数加载)
+
+
+![8O6ePg.gif](https://s1.ax1x.com/2020/03/25/8O6ePg.gif)
+
+#  入门
+
+##  安装依赖
+
+- ROS - http://wiki.ros.org/ROS
+- Eigen - [http://eigen.tuxfamily.org](http://eigen.tuxfamily.org/)
+
+注: 在 Ubuntu 16.04 或 18.04上， 你可以通过以下指令安装Eigen
+
+```
+sudo apt-get install libeigen3-dev -y
+```
+
+##  下载并编译代码
+
+1. 获取源代码：
+
+   ```
+   git clone git@github.com:QiayuanLiao/rm_suspension.git
+   ```
+
+   这是一个ros_package，你需要把它放入你的ROS工作区。
+
+2. 下载[rm_description](https://github.com/QiayuanLiao/rm_suspension/releases/download/1.0/rm_description.tar.xz) 包，并将其放到工作区。 注：rm_description由Solidworks生成，包含描述机器人网格、坐标系和惯性的URDF文件。 但我们只把它用于可视化！！！你可以在没有rm_description的情况下运行程序，整个计算过程仍将正常工作。
+
+3. 在你的workspace中执行编译命令
+
+   ```
+   catkin_make
+   source devel/setup.bash
+   ```
+
+##  测试
+
+打开一个新的终端，然后输入：
+
+```
+roslaunch rm_suspension run_sim.launch
+```
+
+你会看到一个Rviz界面：
+
+![8oOj4x.png](https://s1.ax1x.com/2020/03/23/8oOj4x.png)
+
+然后,你需要通过*Ctrl+o* 打开配置 
+
+![8oj6Ts.png](https://s1.ax1x.com/2020/03/23/8oj6Ts.png)
+
+选择 *rm_suspension/config*中的*sim.rviz* 这个文件并确定
+
+![8TSuHe.png](https://s1.ax1x.com/2020/03/23/8TSuHe.png)
+
+此刻终端会出现以下这些选项，你可以根据提示选择不同的模拟场景
+
+![8TSWE4.png](https://s1.ax1x.com/2020/03/23/8TSWE4.png)
+
+##  分析
+
+1. rqt_plot
+
+界面右侧有两个rqt_plot的图框，你在选框中可以选择机器人的多个变量，并且将变量数值以曲线形式显示出来。最为有用的两个变量是spring_length和base_twist/angular。例如，你可以通过观察spring_length的变化曲线来判断弹簧行程是否用尽，通过base_twist/angular曲线来观察机器人的姿态变化。在rqt_plot中按住鼠标右键可以缩放曲线。
+
+![8TCTvq.png](https://s1.ax1x.com/2020/03/23/8TCTvq.png)
+
+2. Rvis
+
+在界面左侧，你可以观察到机器人的运动状态，在飞坡的测试过程中起到尤其重要的作用。
+
+![8TuPER.png](https://s1.ax1x.com/2020/03/23/8TuPER.png)
+
+#  模拟你自己的机器人
+
+##  坐标系
+
+坐标系的定义如下所示。 ![8b9Lzd.jpg](https://s1.ax1x.com/2020/03/24/8b9Lzd.jpg) ![8bCpo8.png](https://s1.ax1x.com/2020/03/24/8bCpo8.png) [![8bCBSH.jpg](https://s1.ax1x.com/2020/03/24/8bCBSH.jpg)](https://imgchr.com/i/8bCBSH) 注:
+
+1. 底盘的前进方向是沿着+X轴。
+2. 悬架的X轴应与车轮的X轴平行。
+3. 以下参数文件包含的suspe_q_offset（演示中为-0.32rad）应根据弹簧长度的限制进行设置。
+
+##  参数
+
+在rm_suspension/config/sim_param.yaml中，罗列了机器人的参数，你可以通过改变参数数值来测试其对机器人性能的不同影响。 ![8TeE8S.png](https://s1.ax1x.com/2020/03/23/8TeE8S.png)
+
+注:
+
+1. 悬架或车轮的所有参数都由suspension_0和wheel_0定义。
+2. 刚体的惯性通过Solidworks计算，并取框架本身的原点。
+3. 每次更改机器人的变量时，都应该重新启动启动文件。
+
+##  URDF
+
+前面提到过，URDF（rm_description）仅用于可视化。 因为我找不到如何正确输出刚体的惯性，而且我懒得编写URDF解析器，你可以使用 [solidworks plugin](http://wiki.ros.org/sw_urdf_exporter) 导出你的机器人的urdf文件。
